@@ -192,6 +192,50 @@ def _(mo):
 
 
 @app.cell
+def _(equilibre, mo, profondeur):
+    # Profondeur à laquelle l'arbre s'arrête seul, selon le barème choisi.
+    _limite = 11 if equilibre.value else 8
+
+    if profondeur.value <= 2:
+        _titre_p = "Arbre très simple"
+        _texte_p = "Avec si peu de questions, l'arbre ne trace que des frontières grossières. Regarde le tableau de bord : l'accuracy est très proche dans les deux colonnes. Il n'a pas assez de liberté pour apprendre par cœur — c'est du <strong>sous-apprentissage</strong>."
+    elif profondeur.value <= 5:
+        _titre_p = "Zone raisonnable"
+        _texte_p = "L'arbre a de quoi travailler sans encore dériver. L'écart entre les deux colonnes du tableau de bord commence tout juste à se creuser : c'est le premier signe de mémorisation."
+    elif profondeur.value <= _limite:
+        _titre_p = "La mémorisation s'installe"
+        _texte_p = "Le score d'entraînement frôle la perfection pendant que celui de test stagne. L'arbre n'apprend plus ce qu'<em>est</em> un légendaire, il apprend <em>ces</em> légendaires-là. C'est le <strong>surapprentissage</strong>."
+    else:
+        _titre_p = "Ce réglage ne sert plus à rien"
+        _texte_p = f"Avec ce barème, l'arbre s'arrête tout seul à {_limite} niveaux : il n'a plus rien à découper. Au-delà, bouger le curseur ne change plus aucun chiffre. Un hyperparamètre n'agit que tant qu'il est la contrainte qui mord."
+
+    if equilibre.value:
+        _titre_e = "Barème pondéré — on part à la chasse"
+        _texte_e = "Rater un légendaire coûte à l'arbre environ <strong>11 fois</strong> plus cher que se tromper sur un Pokémon normal. Sur les arbres peu profonds, il prend donc plus de risques : plus de légendaires trouvés, plus de fausses alertes. À partir de la profondeur 7, ce gain disparaît."
+    else:
+        _titre_e = "Barème neutre — la prudence"
+        _texte_e = "Toutes les erreurs coûtent pareil. Comme 92 % des Pokémon sont normaux, l'arbre a intérêt à répondre « normal » très souvent. Il se trompe rarement, et plafonne à 7 légendaires trouvés sur 13."
+
+    _etat_e = "activée" if equilibre.value else "désactivée"
+
+    mo.md(f"""
+    <div style="display:flex; gap:1rem; flex-wrap:wrap; margin:0.6rem 0">
+      <div style="flex:1; min-width:270px; background:#eef2fb; border-left:5px solid #3b5ca8; border-radius:10px; padding:1rem 1.2rem; color:#1f2937">
+        <div style="font-weight:800; color:#3b5ca8; font-size:0.72rem; letter-spacing:0.08em; text-transform:uppercase">Profondeur {profondeur.value}</div>
+        <div style="font-weight:700; font-size:1.05rem; margin:0.25rem 0 0.5rem">{_titre_p}</div>
+        <div style="font-size:0.93rem; line-height:1.55">{_texte_p}</div>
+      </div>
+      <div style="flex:1; min-width:270px; background:#fdeeee; border-left:5px solid #c0392b; border-radius:10px; padding:1rem 1.2rem; color:#1f2937">
+        <div style="font-weight:800; color:#c0392b; font-size:0.72rem; letter-spacing:0.08em; text-transform:uppercase">Pondération {_etat_e}</div>
+        <div style="font-weight:700; font-size:1.05rem; margin:0.25rem 0 0.5rem">{_titre_e}</div>
+        <div style="font-size:0.93rem; line-height:1.55">{_texte_e}</div>
+      </div>
+    </div>
+    """)
+    return
+
+
+@app.cell
 def _():
     from sklearn.tree import DecisionTreeClassifier, export_text
 
@@ -210,8 +254,8 @@ def _(DecisionTreeClassifier, X_train, equilibre, profondeur, y_train):
 
 
 @app.cell
-def _(export_text, modele, stats):
-    print(export_text(modele, feature_names=stats))
+def _(export_text, mo, modele, stats):
+    mo.plain_text(export_text(modele, feature_names=stats))
     return
 
 
@@ -322,9 +366,6 @@ def _(mo):
 
     Trois expériences menées avec le curseur et la case à cocher, puis leur
     interprétation.
-
-    *Les résultats en ligne peuvent légèrement varier pour les arbres profonds,
-    car le navigateur utilise d'autres versions des bibliothèques.*
     """)
     return
 
@@ -576,7 +617,8 @@ def _(mo):
     plus rien de ce qui compte.
 
     **2. Plus complexe n'est pas meilleur.** L'accuracy d'entraînement est montée de
-    91,9 % à 99,8 % sans que celle de test progresse. Tout ce gain est allé dans la
+    91,9 % à 99,8 %, alors que celle de test plafonne à 93,8 % dès la
+    profondeur 2. Tout ce gain est allé dans la
     mémorisation. Un arbre de profondeur 2, lisible en une phrase, égale un arbre de
     profondeur 7 sur des données nouvelles.
 

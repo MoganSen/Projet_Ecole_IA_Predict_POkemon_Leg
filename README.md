@@ -5,7 +5,7 @@ reconnaître les Pokémon légendaires à partir de leurs six statistiques de
 combat — et qui s'en sert pour illustrer le surapprentissage, le déséquilibre
 des classes et le compromis rappel / précision.
 
-**▶️ [Essayer le notebook en ligne](https://mogansen.github.io/Projet_Ecole_IA_Predict_POkemon_Leg/)**
+**▶️ [Essayer le site en ligne](https://mogansen.github.io/Projet_Ecole_IA_Predict_POkemon_Leg/)** · [Ouvrir le notebook complet](https://mogansen.github.io/Projet_Ecole_IA_Predict_POkemon_Leg/notebook/)
 
 > Travail réalisé dans le cadre du cours « Fondamentaux de l'IA et bonnes
 > pratiques », séance 2 — Mastère 1 Cybersécurité, OTERIA, novembre 2026.
@@ -45,8 +45,8 @@ La règle principale apprise par l'arbre, lisible telle quelle :
 meilleur pour trouver ce qu'on cherche.
 
 **Plus complexe n'est pas meilleur.** En passant de la profondeur 1 à 15,
-l'accuracy d'entraînement grimpe de 91,9 % à 99,8 % sans que celle de test
-progresse. Tout le gain part en mémorisation — et la trace est visible dans
+l'accuracy d'entraînement grimpe de 91,9 % à 99,8 %, alors que celle de test plafonne à 93,8 % dès la
+profondeur 2. Tout le gain part en mémorisation — et la trace est visible dans
 l'arbre, qui déclare « légendaire » sur une fenêtre de vitesse large de
 1,5 point.
 
@@ -86,9 +86,12 @@ Sous macOS ou Linux, remplacer la ligne d'activation par
 | Fichier | Rôle |
 | --- | --- |
 | `pokemon.py` | Le notebook marimo — un notebook marimo est un simple fichier Python, donc lisible et comparable directement sur GitHub |
-| `public/Pokemon.csv` | Les données |
-| `docs/` | La version web du notebook, générée par marimo |
-| `requirements.txt` | Les versions exactes des bibliothèques |
+| `public/Pokemon.csv` | Les données. Le dossier `public/` est celui que marimo recopie dans la version publiée |
+| `generer_resultats.py` | Le script qui pré-calcule les 30 réglages du modèle pour le site |
+| `docs/index.html` | Le site, servi par GitHub Pages |
+| `docs/data/resultats.json` | Les résultats produits par `generer_resultats.py` |
+| `docs/notebook/` | La version en ligne du notebook, générée par `marimo export html-wasm` |
+| `requirements.txt` | Les versions des bibliothèques |
 
 ## Données
 
@@ -108,7 +111,7 @@ auxquels s'ajoutent les méga-évolutions et les formes alternatives.
 
 ## Utilisation de l'IA
 
-Une IA a été utilisée comme aide pour le design et le code du notebook, la
+Une IA a été utilisée comme aide pour le design et le code du notebook et du site, la
 compréhension du projet et la rédaction du README.
 
 ## Auteur
