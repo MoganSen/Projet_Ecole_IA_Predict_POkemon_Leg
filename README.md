@@ -86,7 +86,8 @@ Sous macOS ou Linux, remplacer la ligne d'activation par
 | Fichier | Rôle |
 | --- | --- |
 | `pokemon.py` | Le notebook marimo — un notebook marimo est un simple fichier Python, donc lisible et comparable directement sur GitHub |
-| `Pokemon.csv` | Les données |
+| `public/Pokemon.csv` | Les données |
+| `docs/` | La version web du notebook, générée par marimo |
 | `requirements.txt` | Les versions exactes des bibliothèques |
 
 ## Données

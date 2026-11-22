@@ -57,8 +57,9 @@ def _():
 
 
 @app.cell
-def _(pd):
-    df = pd.read_csv("Pokemon.csv")
+def _(mo, pd):
+    chemin_csv = mo.notebook_location() / "public" / "Pokemon.csv"
+    df = pd.read_csv(str(chemin_csv))
     df
     return (df,)
 
@@ -98,13 +99,23 @@ def _(mo):
 
 @app.cell
 def _(alt, axe_x, axe_y, df):
-    col_x = axe_x.value.replace(".", "\\.")
-    col_y = axe_y.value.replace(".", "\\.")
-    alt.Chart(df).mark_circle(size=40, opacity=0.6).encode(
-        x=alt.X(col_x, title=axe_x.value),
-        y=alt.Y(col_y, title=axe_y.value),
-        color="Legendary:N",
-        tooltip=["Name", col_x, col_y],
+    # Les points sont écrits directement dans le graphique pour qu'il s'affiche
+    # aussi dans la version en ligne du notebook.
+    _points = [
+        {"Name": _nom, "x": int(_x), "y": int(_y), "Legendary": str(bool(_legendaire))}
+        for _nom, _x, _y, _legendaire in zip(
+            df["Name"], df[axe_x.value], df[axe_y.value], df["Legendary"]
+        )
+    ]
+    alt.Chart(alt.Data(values=_points)).mark_circle(size=40, opacity=0.6).encode(
+        x=alt.X("x:Q", title=axe_x.value),
+        y=alt.Y("y:Q", title=axe_y.value),
+        color=alt.Color("Legendary:N", title="Legendary"),
+        tooltip=[
+            alt.Tooltip("Name:N", title="Nom"),
+            alt.Tooltip("x:Q", title=axe_x.value),
+            alt.Tooltip("y:Q", title=axe_y.value),
+        ],
     )
     return
 
@@ -165,8 +176,8 @@ def _(mo):
 
 @app.cell
 def _(mo):
-    profondeur = mo.ui.slider(1, 15, value=3, label="Profondeur max de l'arbre", show_value=True)
-    equilibre = mo.ui.checkbox(label="Donner plus de poids aux légendaires")
+    profondeur = mo.ui.slider(1, 15, value=4, label="Profondeur max de l'arbre", show_value=True)
+    equilibre = mo.ui.checkbox(value=True, label="Donner plus de poids aux légendaires")
     mo.vstack([profondeur, equilibre])
     return equilibre, profondeur
 
@@ -302,6 +313,9 @@ def _(mo):
 
     Trois expériences menées avec le curseur et la case à cocher, puis leur
     interprétation.
+
+    *Les résultats en ligne peuvent légèrement varier pour les arbres profonds,
+    car le navigateur utilise d'autres versions des bibliothèques.*
     """)
     return
 
