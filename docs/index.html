@@ -25,6 +25,14 @@
   --mono: ui-monospace, "JetBrains Mono", Consolas, monospace;
   --rayon: 14px;
   --duree: 160ms;
+  --fond-ciel: #3d86cf;
+  --fond-herbe: #4a9b5e;
+  --pastille-haut: #fffaf4;
+  --pastille-bas: #f3e9de;
+  --encre: #1f3f8f;
+  --rouge-dex: #C62F2F;
+  --lentille: #2F6FD0;
+  --nuage-decor: rgb(255 255 255 / .82);
   color-scheme: light dark;
 }
 @media (prefers-color-scheme: dark) {
@@ -40,6 +48,14 @@
     --vert: #4CAF7D;
     --bord: #2A2E36;
     --ombre: 0 1px 2px rgb(0 0 0 / .3);
+    --fond-ciel: #173a63;
+    --fond-herbe: #1f4a30;
+    --pastille-haut: #f3ebdf;
+    --pastille-bas: #e2d7c8;
+    --encre: #1f3f8f;
+    --rouge-dex: #a92a2a;
+    --lentille: #5B93E8;
+    --nuage-decor: rgb(255 255 255 / .13);
   }
 }
 
@@ -641,17 +657,17 @@ code {
   .lentille { width: 54px; height: 54px; border-width: 4px; }
   .bouton { width: 100%; }
   .probleme, .pied-grille { grid-template-columns: minmax(0, 1fr); }
-  body { padding-bottom: 128px; }
   .panneau {
-    position: fixed;
-    inset: auto 0 0;
+    position: sticky;
+    top: auto;
+    bottom: 6px;
+    order: 99;
     z-index: 40;
     grid-template-columns: minmax(0, 1fr);
     gap: .1rem;
-    margin: 0;
-    padding: .5rem 16px calc(.4rem + env(safe-area-inset-bottom));
-    border-width: 3px 0 0;
-    border-radius: 16px 16px 0 0;
+    margin: 1rem 0 0;
+    padding: .5rem .85rem calc(.35rem + env(safe-area-inset-bottom));
+    border-radius: 16px;
   }
   .panneau .aide { display: none; }
   .interrupteur { min-height: 40px; font-size: .92rem; }
@@ -686,6 +702,342 @@ code {
   .vers-notebook { flex-direction: column; align-items: stretch; }
 }
 
+/* ---------- Phase 2 : console de jeu ---------- */
+.scene {
+  position: relative;
+  isolation: isolate;
+  clip-path: inset(0);
+  margin-top: clamp(2rem, 5vw, 3.5rem);
+  padding-block: clamp(.75rem, 3vw, 2.5rem);
+}
+.scene + .conteneur { margin-top: clamp(2rem, 5vw, 3.5rem); }
+.scene-fond {
+  position: fixed;
+  inset: -8%;
+  z-index: -2;
+  background:
+    radial-gradient(55% 45% at 18% 14%, color-mix(in srgb, var(--fond-ciel) 62%, #fff) 0, transparent 72%),
+    radial-gradient(48% 42% at 86% 30%, color-mix(in srgb, var(--fond-ciel) 74%, #0b2146) 0, transparent 72%),
+    linear-gradient(180deg, var(--fond-ciel) 0%, var(--fond-ciel) 54%, var(--fond-herbe) 100%);
+  filter: blur(40px) saturate(1.1);
+  transform: scale(1.05);
+  pointer-events: none;
+}
+.scene-grain {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  opacity: .22;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+  pointer-events: none;
+}
+.console {
+  width: min(100% - 20px, 1180px);
+  margin-inline: auto;
+  padding: clamp(6px, .9vw, 12px);
+  border-radius: clamp(20px, 2.4vw, 32px);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--rouge-dex) 88%, #fff), var(--rouge-dex));
+  box-shadow: 0 18px 50px rgb(8 28 60 / .42), inset 0 2px 0 rgb(255 255 255 / .34), inset 0 -4px 0 rgb(0 0 0 / .2);
+}
+.ecran {
+  display: flex;
+  flex-direction: column;
+  padding: clamp(.85rem, 2.4vw, 1.75rem);
+  border-radius: clamp(14px, 1.8vw, 22px);
+  background: var(--fond);
+  color: var(--texte);
+}
+.ecran > * { min-width: 0; }
+
+/* Le plateau : 1em y vaut 1 % de sa largeur, pour le décor uniquement. */
+.plateau {
+  --u: 11px;
+  position: relative;
+  min-height: max(47em, 33rem);
+  margin-top: 1rem;
+  overflow: hidden;
+  border: 3px solid color-mix(in srgb, var(--encre) 72%, #000);
+  border-radius: 18px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--fond-ciel) 76%, #fff) 0%, var(--fond-ciel) 58%, var(--fond-herbe) 100%);
+  color: var(--encre);
+  font-size: 11px;
+  line-height: 1.35;
+}
+.decor { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.couche { position: absolute; display: block; will-change: transform; }
+.cumulus { fill: var(--nuage-decor); }
+.cumulus-a { left: 3%; top: 39%; width: 10em; }
+.cumulus-b { right: 3%; top: 37%; width: 10em; }
+.cumulus-c { left: 31%; top: 12%; width: 9em; opacity: .75; }
+.colline { left: -4em; bottom: -1em; width: calc(100% + 8em); }
+.colline-loin { height: 21em; fill: color-mix(in srgb, var(--fond-herbe) 70%, var(--fond-ciel)); }
+.colline-proche { height: 12em; fill: var(--fond-herbe); }
+
+/* Journal des réglages essayés */
+.journal-bloc {
+  position: absolute;
+  z-index: 6;
+  top: .6rem;
+  left: .6rem;
+  right: .6rem;
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  pointer-events: none;
+}
+.journal-titre {
+  flex: none;
+  padding: .18rem .6rem;
+  border-radius: 999px;
+  background: rgb(255 250 244 / .94);
+  color: var(--encre);
+  font-size: .72rem;
+  font-weight: 800;
+}
+.journal {
+  display: flex;
+  gap: .32rem;
+  margin: 0;
+  padding: 5px;
+  overflow-x: auto;
+  list-style: none;
+  pointer-events: auto;
+  scrollbar-width: none;
+}
+.journal::-webkit-scrollbar { display: none; }
+.journal li { flex: none; }
+.jeton {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: linear-gradient(180deg, var(--pastille-haut), var(--pastille-bas));
+  color: var(--encre);
+  font-family: var(--mono);
+  font-size: .82rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgb(20 50 110 / .32);
+}
+.jeton svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.jeton span { position: relative; }
+.jeton-fond { fill: none; stroke: rgb(31 63 143 / .16); stroke-width: 3; }
+.jeton-anneau { fill: none; stroke-width: 3; stroke-linecap: round; }
+.jeton[aria-current="true"] { outline: 3px solid var(--encre); outline-offset: 1px; }
+.jeton:focus-visible { outline: 3px solid var(--rouge-dex); outline-offset: 1px; }
+.jeton-pondere::after {
+  content: "";
+  position: absolute;
+  top: 1px;
+  right: 1px;
+  width: 9px;
+  height: 9px;
+  border: 1.5px solid #fffaf4;
+  border-radius: 50%;
+  background: var(--rouge-dex);
+}
+
+/* Pastilles */
+.pastille-jeu {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .45em;
+  min-height: 42px;
+  padding: .45em 1.05em;
+  border: 0;
+  border-radius: 2em;
+  background: linear-gradient(180deg, var(--pastille-haut), var(--pastille-bas));
+  color: var(--encre);
+  font-family: var(--police);
+  font-size: .9rem;
+  font-weight: 800;
+  line-height: 1.1;
+  white-space: nowrap;
+  cursor: pointer;
+  transform: scale(var(--s, 1));
+  transition: transform .18s ease;
+  box-shadow:
+    0 .12em 0 rgba(255, 255, 255, .9) inset,
+    0 -.12em .2em rgba(160, 130, 100, .18) inset,
+    0 .35em .9em rgba(20, 50, 110, .28),
+    0 0 0 .06em rgba(120, 140, 190, .25);
+}
+.pastille-jeu svg {
+  flex: none;
+  width: 1.15em;
+  height: 1.15em;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform .2s ease;
+}
+@media (hover: hover) {
+  .pastille-jeu:hover { --s: 1.08; background: linear-gradient(180deg, #fff, #fbf4ea); }
+  .pastille-jeu:hover svg { transform: rotate(-12deg); }
+}
+.pastille-jeu.creux { --s: .9; }
+.pastille-jeu:focus-visible { outline: 3px solid var(--encre); outline-offset: 2px; }
+.preset[aria-pressed="true"] {
+  box-shadow:
+    0 .12em 0 rgba(255, 255, 255, .9) inset,
+    0 -.12em .2em rgba(160, 130, 100, .18) inset,
+    0 .35em .9em rgba(20, 50, 110, .28),
+    0 0 0 .17em var(--rouge-dex);
+}
+
+/* Centre : gemme, légende, phrase */
+.centre {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: .42rem;
+  padding: 3.4rem 1rem .8rem;
+  pointer-events: none;
+}
+.gemme {
+  position: relative;
+  z-index: 2;
+  flex: none;
+  width: 21em;
+  height: 24em;
+  overflow: visible;
+  filter: drop-shadow(0 1em .8em rgb(10 30 60 / .35));
+}
+.facette { stroke-width: .8; stroke-linejoin: round; }
+.info-jeu {
+  position: relative;
+  z-index: 6;
+  max-width: min(100%, calc(48 * var(--u)));
+  padding: .24rem .75rem;
+  border-radius: 12px;
+  background: rgb(255 250 244 / .95);
+  color: var(--encre);
+  font-size: .78rem;
+  line-height: 1.35;
+  text-align: center;
+}
+.info-jeu strong { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.phrase-jeu { min-height: 1.75rem; font-size: .84rem; font-weight: 700; }
+.bouton-eventail { position: relative; z-index: 6; pointer-events: auto; }
+
+/* Éventail des réglages nommés */
+.eventail { position: absolute; left: 50%; top: 42%; z-index: 6; width: 0; height: 0; }
+.preset {
+  position: absolute;
+  left: 0;
+  top: 0;
+  visibility: hidden;
+  transform: translate(-50%, -50%) scale(0);
+  transition: transform .45s cubic-bezier(.3, 1.6, .5, 1), visibility 0s linear .45s;
+  transition-delay: calc((5 - var(--i)) * 30ms), calc(.45s + (5 - var(--i)) * 30ms);
+}
+.eventail.ouvert .preset {
+  visibility: visible;
+  transform: translate(calc(-50% + var(--x) * var(--u)), calc(-50% + var(--y) * var(--u))) scale(var(--s, 1));
+  transition-delay: calc(var(--i) * 45ms), 0s;
+}
+.eventail.pose .preset { transition: transform .18s ease; transition-delay: 0s; }
+
+/* Pokémon qui s'envolent */
+.envols { position: absolute; inset: 0 0 auto; z-index: 5; height: 100%; overflow: hidden; pointer-events: none; }
+.envol {
+  position: absolute;
+  max-width: min(48%, 15rem);
+  padding: .16rem .6rem;
+  overflow: hidden;
+  border-radius: 999px;
+  color: #fff;
+  font-size: .8rem;
+  font-weight: 700;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  box-shadow: 0 3px 8px rgb(0 0 0 / .3);
+}
+.envol-gagne { background: #1f7a4a; }
+.envol-perdu { background: #5A5F6B; }
+.envol-alerte { background: #C62F2F; }
+
+/* Bulles de dialogue */
+.explications { margin-top: .95rem; }
+.explication,
+.explication-profondeur,
+.explication-bareme {
+  position: relative;
+  border: 0;
+  border-radius: 20px 20px 20px 6px;
+  background: linear-gradient(180deg, var(--pastille-haut), var(--pastille-bas));
+  color: var(--encre);
+  box-shadow: 0 .35em .9em rgba(20, 50, 110, .24), 0 0 0 1px rgba(120, 140, 190, .25);
+  transform-origin: 2.6rem 0;
+}
+.explication::before {
+  content: "";
+  position: absolute;
+  top: -11px;
+  left: 1.9rem;
+  width: 22px;
+  height: 12px;
+  background: var(--pastille-haut);
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+}
+.explication h3, .explication p { color: var(--encre); }
+.explication-profondeur .surtitre { color: var(--encre); }
+.explication-bareme .surtitre { color: #a32222; }
+.panneau.signal { animation: signal-panneau .7s ease-out 2; }
+@keyframes signal-panneau {
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--rouge) 75%, transparent); }
+  100% { box-shadow: 0 0 0 14px transparent; }
+}
+@keyframes jaillir { from { transform: scale(0); } to { transform: scale(1); } }
+
+@media (max-width: 899px) {
+  .plateau { min-height: 0; padding: 5.9rem .6rem .75rem; }
+  .journal-bloc { flex-wrap: wrap; gap: .15rem; }
+  .journal { max-width: 100%; }
+  .centre { position: relative; inset: auto; padding: 0; }
+  .gemme { width: 27em; height: 31em; }
+  .info-jeu { max-width: 100%; }
+  .eventail {
+    position: relative;
+    left: auto;
+    top: auto;
+    display: none;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: .5rem;
+    width: auto;
+    height: auto;
+    margin-top: .65rem;
+  }
+  .eventail.ouvert { display: grid; }
+  .preset,
+  .eventail.ouvert .preset,
+  .eventail.pose .preset {
+    position: relative;
+    width: 100%;
+    padding-inline: .4em;
+    visibility: visible;
+    transform: scale(var(--s, 1));
+    transition: transform .18s ease;
+  }
+  .eventail.ouvert:not(.pose) .preset {
+    animation: jaillir .45s cubic-bezier(.3, 1.6, .5, 1) both;
+    animation-delay: calc(var(--i) * 45ms);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
@@ -713,7 +1065,8 @@ code {
   </div>
 </header>
 
-<main id="contenu" class="conteneur">
+<main id="contenu">
+<div class="conteneur">
   <div id="message" class="message" role="status" hidden></div>
 
   <section class="section" aria-labelledby="titre-probleme">
@@ -764,7 +1117,15 @@ code {
     </div>
   </section>
 
-  <section class="section" aria-labelledby="titre-reglages">
+</div>
+
+<!-- Zone interactive : console de jeu -->
+<div class="scene">
+  <div class="scene-fond" aria-hidden="true"></div>
+  <div class="scene-grain" aria-hidden="true"></div>
+  <div class="console">
+  <div class="ecran">
+  <section aria-labelledby="titre-reglages">
     <div class="section-tete">
       <p class="surtitre">Entraîner le modèle</p>
       <h2 id="titre-reglages">Deux réglages pour piloter l'arbre</h2>
@@ -774,6 +1135,39 @@ code {
       <p>Ces deux réglages sont des <strong>hyperparamètres</strong> : je les choisis moi-même, par opposition aux seuils de l'arbre, que le modèle apprend seul à partir des données.</p>
     </div>
   </section>
+
+  <div class="plateau" id="plateau">
+    <div class="decor" aria-hidden="true">
+      <svg class="couche cumulus cumulus-c" data-profondeur="1.2" viewBox="0 0 120 50"><path d="M20 46a17 17 0 0 1 2-34 24 24 0 0 1 45-7 20 20 0 0 1 33 15 13 13 0 0 1-2 26z"/></svg>
+      <svg class="couche cumulus cumulus-a" data-profondeur="1.6" viewBox="0 0 120 50"><path d="M20 46a17 17 0 0 1 2-34 24 24 0 0 1 45-7 20 20 0 0 1 33 15 13 13 0 0 1-2 26z"/></svg>
+      <svg class="couche cumulus cumulus-b" data-profondeur="2" viewBox="0 0 120 50"><path d="M20 46a17 17 0 0 1 2-34 24 24 0 0 1 45-7 20 20 0 0 1 33 15 13 13 0 0 1-2 26z"/></svg>
+      <svg class="couche colline colline-loin" data-profondeur="3" viewBox="0 0 1000 200" preserveAspectRatio="none"><path d="M0 118C150 58 300 62 455 112S760 172 1000 86V200H0Z"/></svg>
+      <svg class="couche colline colline-proche" data-profondeur="5" viewBox="0 0 1000 200" preserveAspectRatio="none"><path d="M0 92C190 158 340 150 520 96S830 42 1000 118V200H0Z"/></svg>
+    </div>
+    <div class="envols" id="envols" aria-hidden="true"></div>
+    <div class="journal-bloc">
+      <span class="journal-titre">Journal · anneau = rappel · point = pondéré</span>
+      <ol class="journal" id="journal" aria-label="Réglages déjà essayés"></ol>
+    </div>
+    <div class="centre">
+      <svg class="gemme" id="gemme" viewBox="-100 -112 200 224" role="img" aria-label="Indicateur de surapprentissage"></svg>
+      <p class="info-jeu"><strong id="gemme-valeurs">—</strong><br>Couleur : écart d'accuracy entraînement / test (vert = proche, rouge = surapprentissage). Vitesse : rappel.</p>
+      <button type="button" class="pastille-jeu bouton-eventail" id="ouvrir-eventail" aria-expanded="false" aria-controls="eventail">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.2"/><path d="m10.6 5.4-1.5 3.7-3.7 1.5 1.5-3.7z"/></svg>
+        <span>Visite guidée</span>
+      </button>
+      <p class="info-jeu phrase-jeu" id="phrase-preset">&nbsp;</p>
+      <p class="info-jeu" id="bilan">&nbsp;</p>
+      <div class="eventail" id="eventail">
+        <button type="button" class="pastille-jeu preset" data-preset="aveugle" style="--i:0;--x:-36;--y:-12"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 8c3 3.6 9 3.6 12 0M4 10.8 3 12.6M8 11.9v2M12 10.8l1 1.8"/></svg><span>Aveugle</span></button>
+        <button type="button" class="pastille-jeu preset" data-preset="prudent" style="--i:1;--x:-39;--y:0"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.8 13 3.6v4.1c0 3-2 5.2-5 6.5-3-1.3-5-3.5-5-6.5V3.6z"/></svg><span>Prudent</span></button>
+        <button type="button" class="pastille-jeu preset" data-preset="equilibre" style="--i:2;--x:-36;--y:12"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2v12M4.5 14h7M3 4.5h10M3 4.5 1.4 9h3.2zM13 4.5 11.4 9h3.2z"/></svg><span>Équilibré</span></button>
+        <button type="button" class="pastille-jeu preset" data-preset="chasseur" style="--i:3;--x:36;--y:-12"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="5.6"/><circle cx="8" cy="8" r="2"/><path d="M8 .8v3M8 12.2v3M.8 8h3M12.2 8h3"/></svg><span>Chasseur</span></button>
+        <button type="button" class="pastille-jeu preset" data-preset="coeur" style="--i:4;--x:39;--y:0"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 13.6S2 10 2 5.9A3.2 3.2 0 0 1 8 4.2a3.2 3.2 0 0 1 6 1.7c0 4.1-6 7.7-6 7.7z"/></svg><span>Par cœur</span></button>
+        <button type="button" class="pastille-jeu preset" data-preset="libre" style="--i:5;--x:36;--y:12"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4.5h7M12 4.5h2M2 11.5h2M7 11.5h7"/><circle cx="10.5" cy="4.5" r="1.6"/><circle cx="5.5" cy="11.5" r="1.6"/></svg><span>Réglage libre…</span></button>
+      </div>
+    </div>
+  </div>
 
   <div class="panneau" role="group" aria-label="Réglages du modèle">
     <div class="reglage">
@@ -957,6 +1351,11 @@ code {
     </div>
   </section>
 
+  </div>
+  </div>
+</div>
+
+<div class="conteneur">
   <section class="section" aria-labelledby="titre-experiences">
     <div class="section-tete">
       <p class="surtitre">Mes expériences</p>
@@ -1382,6 +1781,7 @@ ces deux réglages et leur interprétation.</p>
       <a class="bouton" href="notebook/">Ouvrir le notebook <span aria-hidden="true">→</span></a>
     </div>
   </section>
+</div>
 </main>
 
 <footer class="pied">
@@ -1605,8 +2005,10 @@ function actualiser() {
   actualiserTableCourbe();
   dessinerMarques(c);
   actualiserRegles(c, limite);
+  majConsole(c);
 
   $("annonce").textContent = `Profondeur ${etat.profondeur}, pondération ${etat.pondere ? "activée" : "désactivée"} : accuracy ${pct(c.acc_test)}, rappel ${pct(c.rec_test)}, précision ${pct(c.prec_test)}.`;
+  if (jeu.bilan) $("annonce").textContent += ` ${jeu.bilan}`;
 }
 
 /* ---------- Graphiques ---------- */
@@ -1919,6 +2321,341 @@ function brancherGraphiques() {
   }).observe($("courbe"));
 }
 
+/* ---------- Console de jeu : gemme, éventail, envols, journal ---------- */
+const pointeurFin = matchMedia("(hover: hover) and (pointer: fine)");
+const SOMMETS = [[0, 98, 0], [0, -98, 0], ...[0, 1, 2, 3].map((k) => {
+  const a = Math.PI / 4 + k * Math.PI / 2;
+  return [78 * Math.cos(a), 0, 78 * Math.sin(a)];
+})];
+const FACES = [0, 1, 2, 3].flatMap((k) => [[0, 2 + k, 2 + (k + 1) % 4], [1, 2 + (k + 1) % 4, 2 + k]]);
+const VERT = [46, 139, 87], AMBRE = [232, 163, 23], ROUGE = [198, 47, 47];
+const PRESETS = { aveugle: [1, false], prudent: [3, false], equilibre: [4, true], chasseur: [2, true], coeur: [15, false] };
+const jeu = {
+  angle: .6, vitesse: .6, vitesseCible: .6, couleur: [...VERT], couleurCible: [...VERT],
+  polygones: [], couches: [], px: 0, py: 0, cx: 0, cy: 0,
+  visible: true, raf: 0, dernier: 0, precedent: null, journal: [], minuteurs: [],
+  actifs: 0, ecartMax: 1, titres: ["", ""], bilan: "", minuteurPose: 0,
+};
+const cleCourante = () => `${etat.profondeur}_${etat.pondere ? 1 : 0}`;
+const melanger = (a, b, t) => a.map((v, i) => v + (b[i] - v) * t);
+
+function couleurEcart(ecart) {
+  const milieu = jeu.ecartMax / 2;
+  if (ecart <= milieu) return melanger(VERT, AMBRE, ecart / milieu);
+  return melanger(AMBRE, ROUGE, Math.min(1, (ecart - milieu) / milieu));
+}
+
+function dessinerGemme() {
+  const a = jeu.angle, cA = Math.cos(a), sA = Math.sin(a), cT = Math.cos(.3), sT = Math.sin(.3);
+  const pts = SOMMETS.map(([x, y, z]) => {
+    const x1 = x * cA + z * sA, z1 = -x * sA + z * cA;
+    const y1 = y * cT - z1 * sT, z2 = y * sT + z1 * cT;
+    const k = 340 / (340 - z2);
+    return { x: x1, y: y1, z: z2, ex: x1 * k, ey: -y1 * k };
+  });
+  const ordre = FACES.map((f) => {
+    const [A, B, C] = f.map((i) => pts[i]);
+    let nx = (B.y - A.y) * (C.z - A.z) - (B.z - A.z) * (C.y - A.y);
+    let ny = (B.z - A.z) * (C.x - A.x) - (B.x - A.x) * (C.z - A.z);
+    let nz = (B.x - A.x) * (C.y - A.y) - (B.y - A.y) * (C.x - A.x);
+    const m = Math.hypot(nx, ny, nz) || 1;
+    const gx = (A.x + B.x + C.x) / 3, gy = (A.y + B.y + C.y) / 3, gz = (A.z + B.z + C.z) / 3;
+    const sens = (nx * gx + ny * gy + nz * gz) < 0 ? -1 : 1;
+    nx *= sens / m; ny *= sens / m; nz *= sens / m;
+    return { f, z: gz, l: Math.max(0, nx * -.45 + ny * .62 + nz * .64) };
+  }).sort((p, q) => p.z - q.z);
+  ordre.forEach(({ f, l }, j) => {
+    const ombre = .5 + .62 * l, reflet = l ** 8 * .42;
+    const rgb = jeu.couleur.map((v) => Math.min(255, Math.round(v * ombre + 255 * reflet))).join(" ");
+    const poly = jeu.polygones[j];
+    poly.setAttribute("points", f.map((i) => `${pts[i].ex.toFixed(1)},${pts[i].ey.toFixed(1)}`).join(" "));
+    poly.style.fill = `rgb(${rgb})`;
+    poly.style.stroke = `rgb(${rgb})`;
+  });
+}
+
+function boucleJeu(t) {
+  jeu.raf = 0;
+  if (!jeu.visible || document.hidden || mouvementReduit.matches) return;
+  const dt = Math.min(.05, (t - (jeu.dernier || t)) / 1000);
+  jeu.dernier = t;
+  jeu.vitesse += (jeu.vitesseCible - jeu.vitesse) * .06;
+  jeu.angle += jeu.vitesse * dt;
+  jeu.couleur = melanger(jeu.couleur, jeu.couleurCible, .08);
+  dessinerGemme();
+  if (pointeurFin.matches) {
+    jeu.px += (jeu.cx - jeu.px) * .05;
+    jeu.py += (jeu.cy - jeu.py) * .05;
+    for (const couche of jeu.couches) {
+      const d = Number(couche.dataset.profondeur);
+      couche.style.transform = `translate3d(${(jeu.px * -.5 * d).toFixed(3)}em, ${(jeu.py * -.3 * d).toFixed(3)}em, 0)`;
+    }
+  }
+  jeu.raf = requestAnimationFrame(boucleJeu);
+}
+
+function relancerBoucle() {
+  if (jeu.raf || !jeu.visible || document.hidden || mouvementReduit.matches) return;
+  jeu.dernier = 0;
+  jeu.raf = requestAnimationFrame(boucleJeu);
+}
+
+function reglerUnite() {
+  const plateau = $("plateau");
+  const u = Math.max(4.8, plateau.clientWidth / 100);
+  plateau.style.fontSize = `${u}px`;
+  plateau.style.setProperty("--u", `${u}px`);
+}
+
+function presetCourant() {
+  for (const [cle, [p, q]] of Object.entries(PRESETS)) {
+    if (p === etat.profondeur && q === etat.pondere) return cle;
+  }
+  return null;
+}
+
+function phrasePreset(cle) {
+  if (cle === "libre") return "Prends le curseur et l'interrupteur pour choisir toi-même.";
+  if (!cle) return "Réglage personnalisé : compare-le aux pastilles de la visite guidée.";
+  const [p, q] = PRESETS[cle];
+  const c = D.combinaisons[`${p}_${q ? 1 : 0}`];
+  const [, fp, fn, tp] = c.matrice;
+  const total = tp + fn;
+  if (cle === "aveugle") return `${pct(c.acc_test)} d'accuracy… sans trouver un seul légendaire.`;
+  if (cle === "prudent") return `${pct(c.prec_test)} de précision, mais seulement ${tp} légendaires sur ${total}.`;
+  if (cle === "equilibre") return `Le réglage retenu : ${tp} légendaires sur ${total}, pour ${fp} fausses alertes.`;
+  if (cle === "chasseur") return `Rappel maximal (${pct(c.rec_test)}), au prix de ${fp} fausses alertes.`;
+  const ecart = Math.abs(ecartPoints(c.acc_train, c.acc_test)).toLocaleString("fr-FR", { minimumFractionDigits: 1 });
+  return `L'arbre s'arrête à ${c.profondeur_reelle} niveaux : plus grand écart d'accuracy, ${ecart} points.`;
+}
+
+function envoler(nom, type) {
+  const zone = $("envols");
+  if (jeu.actifs >= 26 || !zone.clientWidth) return;
+  const plateau = $("plateau"), legende = plateau.querySelector(".info-jeu");
+  const H = Math.max(120, legende.getBoundingClientRect().top - plateau.getBoundingClientRect().top - 4);
+  zone.style.height = `${H}px`;
+  const W = zone.clientWidth, large = W >= 860, haut = large ? 58 : 98, bas = H - 12;
+  const hasard = (a, b) => a + Math.random() * (b - a);
+  const el = document.createElement("span");
+  el.className = `envol envol-${type}`;
+  el.textContent = nomLisible(nom);
+  let x, y, dy;
+  if (type === "gagne") { x = hasard(.34, .66) * W; y = bas; dy = haut - bas; }
+  else if (type === "perdu") { x = hasard(.34, .66) * W; y = haut; dy = bas - haut; }
+  else {
+    const gauche = Math.random() < .5;
+    x = (gauche ? hasard(large ? .29 : .17, large ? .37 : .3) : hasard(large ? .63 : .7, large ? .71 : .83)) * W;
+    y = hasard(haut + 16, bas - 8);
+    dy = -16;
+  }
+  el.style.left = `${x}px`;
+  el.style.top = `${y}px`;
+  zone.append(el);
+  jeu.actifs++;
+  const derive = hasard(-46, 46), rotation = hasard(-14, 14);
+  const position = (t, r) => `translate(calc(-50% + ${(derive * t).toFixed(1)}px), calc(-50% + ${(dy * t).toFixed(1)}px)) rotate(${(rotation * r).toFixed(1)}deg)`;
+  const vol = el.animate([
+    { transform: `${position(0, 0)} scale(.6)`, opacity: 0 },
+    { transform: `${position(.14, .3)} scale(1)`, opacity: 1, offset: .12 },
+    { transform: `${position(.74, .8)} scale(1)`, opacity: 1, offset: .72 },
+    { transform: `${position(1, 1)} scale(1)`, opacity: 0 },
+  ], { duration: hasard(2200, 2800), easing: "ease-out", fill: "forwards" });
+  const fin = () => { el.remove(); jeu.actifs--; };
+  vol.onfinish = fin;
+  vol.oncancel = fin;
+}
+
+function comparerReglages(avant, c) {
+  const gagnes = c.trouves.filter((n) => !avant.trouves.includes(n));
+  const perdus = avant.trouves.filter((n) => !c.trouves.includes(n));
+  const alertes = c.fausses_alertes.filter((n) => !avant.fausses_alertes.includes(n));
+  const retirees = avant.fausses_alertes.filter((n) => !c.fausses_alertes.includes(n)).length;
+  const parties = [];
+  if (gagnes.length) parties.push(`+${gagnes.length} trouvé${gagnes.length > 1 ? "s" : ""}`);
+  if (perdus.length) parties.push(`−${perdus.length} perdu${perdus.length > 1 ? "s" : ""}`);
+  if (alertes.length) parties.push(`+${alertes.length} fausse${alertes.length > 1 ? "s" : ""} alerte${alertes.length > 1 ? "s" : ""}`);
+  if (retirees) parties.push(`−${retirees} fausse${retirees > 1 ? "s" : ""} alerte${retirees > 1 ? "s" : ""}`);
+  jeu.bilan = parties.length ? `Depuis le réglage précédent : ${parties.join(" · ")}.` : "Mêmes Pokémon qu'au réglage précédent.";
+  $("bilan").textContent = jeu.bilan;
+  if (mouvementReduit.matches) return;
+  jeu.minuteurs.forEach(clearTimeout);
+  jeu.minuteurs = [];
+  const listes = [gagnes.map((n) => [n, "gagne"]), perdus.map((n) => [n, "perdu"]), alertes.map((n) => [n, "alerte"])];
+  const file = [];
+  for (let i = 0; i < 6; i++) for (const l of listes) if (l[i]) file.push(l[i]);
+  file.slice(0, 14).forEach(([nom, type], i) => {
+    jeu.minuteurs.push(setTimeout(() => envoler(nom, type), i * 160));
+  });
+}
+
+function bulleSurgit(el) {
+  if (mouvementReduit.matches || !el.animate) return;
+  el.animate([{ transform: "scale(0)" }, { transform: "scale(1)" }], { duration: 450, easing: "cubic-bezier(.3, 1.6, .5, 1)" });
+}
+
+function marquerJournal() {
+  const courant = cleCourante();
+  for (const b of $("journal").querySelectorAll("button")) {
+    if (b.dataset.cle === courant) b.setAttribute("aria-current", "true");
+    else b.removeAttribute("aria-current");
+  }
+}
+
+function dessinerJournal() {
+  const liste = $("journal");
+  liste.replaceChildren(...jeu.journal.map((cle) => {
+    const c = D.combinaisons[cle];
+    const li = document.createElement("li");
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = `jeton${c.pondere ? " jeton-pondere" : ""}`;
+    b.dataset.cle = cle;
+    const description = `Profondeur ${c.profondeur}, ${c.pondere ? "avec" : "sans"} pondération, rappel ${pct(c.rec_test)}`;
+    b.title = description;
+    b.setAttribute("aria-label", `Revenir à : ${description}`);
+    const svg = svgEl("svg", { viewBox: "0 0 36 36", "aria-hidden": "true" }, b);
+    svgEl("circle", { cx: 18, cy: 18, r: 15, class: "jeton-fond" }, svg);
+    const anneau = svgEl("circle", { cx: 18, cy: 18, r: 15, class: "jeton-anneau", pathLength: 100, "stroke-dasharray": `${(c.rec_test * 100).toFixed(1)} 100`, transform: "rotate(-90 18 18)" }, svg);
+    anneau.style.stroke = `color-mix(in srgb, #2E8B57 ${Math.round(c.rec_test * 100)}%, #E8A317)`;
+    const numero = document.createElement("span");
+    numero.textContent = c.profondeur;
+    b.append(numero);
+    b.addEventListener("click", () => appliquerReglage(c.profondeur, c.pondere, false));
+    li.append(b);
+    return li;
+  }));
+  marquerJournal();
+  liste.scrollLeft = liste.scrollWidth;
+}
+
+function noterJournal() {
+  const cle = cleCourante();
+  if (!jeu.journal.includes(cle)) {
+    jeu.journal.push(cle);
+    if (jeu.journal.length > 12) jeu.journal.shift();
+    dessinerJournal();
+  } else {
+    marquerJournal();
+  }
+}
+
+function appliquerReglage(profondeur, pondere, noter = true) {
+  etat.profondeur = profondeur;
+  etat.pondere = pondere;
+  $("profondeur").value = profondeur;
+  $("pondere").checked = pondere;
+  actualiser();
+  if (noter) noterJournal();
+}
+
+function majConsole(c) {
+  const ecart = ecartPoints(c.acc_train, c.acc_test);
+  jeu.couleurCible = couleurEcart(Math.abs(ecart));
+  jeu.vitesseCible = .18 + c.rec_test * 2.4;
+  const texte = `Écart ${formatPoints.format(ecart)} pt${Math.abs(ecart) >= 2 ? "s" : ""} · Rappel ${pct(c.rec_test)}`;
+  $("gemme-valeurs").textContent = texte;
+  $("gemme").setAttribute("aria-label", `Indicateur de surapprentissage. ${texte}.`);
+  if (mouvementReduit.matches) {
+    jeu.couleur = [...jeu.couleurCible];
+    dessinerGemme();
+  }
+  relancerBoucle();
+
+  const titres = [$("exp-p-titre").textContent, $("exp-e-titre").textContent];
+  if (jeu.titres[0] && titres[0] !== jeu.titres[0]) bulleSurgit(document.querySelector(".explication-profondeur"));
+  if (jeu.titres[1] && titres[1] !== jeu.titres[1]) bulleSurgit(document.querySelector(".explication-bareme"));
+  jeu.titres = titres;
+
+  const courant = presetCourant();
+  for (const b of document.querySelectorAll(".preset")) {
+    if (b.dataset.preset !== "libre") b.setAttribute("aria-pressed", String(b.dataset.preset === courant));
+  }
+  $("phrase-preset").textContent = phrasePreset(courant);
+
+  if (jeu.precedent && jeu.precedent !== c) comparerReglages(jeu.precedent, c);
+  else if (!jeu.precedent) $("bilan").textContent = "Change un réglage : les Pokémon gagnés et perdus s'envolent ici.";
+  jeu.precedent = c;
+  marquerJournal();
+}
+
+function basculerEventail(ouvrir) {
+  const eventail = $("eventail");
+  eventail.classList.remove("pose");
+  eventail.classList.toggle("ouvert", ouvrir);
+  $("ouvrir-eventail").setAttribute("aria-expanded", String(ouvrir));
+  clearTimeout(jeu.minuteurPose);
+  if (ouvrir) jeu.minuteurPose = setTimeout(() => eventail.classList.add("pose"), 820);
+}
+
+function brancherConsole() {
+  const gemme = $("gemme");
+  jeu.polygones = FACES.map(() => svgEl("polygon", { class: "facette" }, gemme));
+  jeu.couches = [...document.querySelectorAll(".couche")];
+  jeu.ecartMax = Math.max(...Object.values(D.combinaisons).map((c) => Math.abs(ecartPoints(c.acc_train, c.acc_test))));
+  const c = combinaisonCourante();
+  jeu.couleur = couleurEcart(Math.abs(ecartPoints(c.acc_train, c.acc_test)));
+  jeu.couleurCible = [...jeu.couleur];
+  jeu.vitesse = jeu.vitesseCible = .18 + c.rec_test * 2.4;
+  dessinerGemme();
+  reglerUnite();
+  new ResizeObserver(reglerUnite).observe($("plateau"));
+
+  for (const bouton of document.querySelectorAll(".preset")) {
+    const cle = bouton.dataset.preset;
+    const montrer = () => { $("phrase-preset").textContent = phrasePreset(cle); };
+    const rendre = () => { $("phrase-preset").textContent = phrasePreset(presetCourant()); };
+    bouton.addEventListener("pointerenter", (e) => { if (e.pointerType === "mouse") montrer(); });
+    bouton.addEventListener("pointerleave", (e) => { if (e.pointerType === "mouse") rendre(); });
+    bouton.addEventListener("focus", montrer);
+    bouton.addEventListener("blur", rendre);
+    bouton.addEventListener("click", () => {
+      bouton.classList.add("creux");
+      setTimeout(() => bouton.classList.remove("creux"), 350);
+      if (cle === "libre") {
+        const panneau = document.querySelector(".panneau");
+        panneau.classList.remove("signal");
+        void panneau.offsetWidth;
+        panneau.classList.add("signal");
+        $("profondeur").focus({ preventScroll: false });
+        return;
+      }
+      appliquerReglage(PRESETS[cle][0], PRESETS[cle][1]);
+      montrer();
+    });
+  }
+
+  const ouvrir = $("ouvrir-eventail");
+  ouvrir.addEventListener("click", () => basculerEventail(ouvrir.getAttribute("aria-expanded") !== "true"));
+  $("plateau").addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && ouvrir.getAttribute("aria-expanded") === "true") {
+      basculerEventail(false);
+      ouvrir.focus();
+    }
+  });
+  window.addEventListener("pointermove", (e) => {
+    if (e.pointerType !== "mouse") return;
+    jeu.cx = e.clientX / innerWidth - .5;
+    jeu.cy = e.clientY / innerHeight - .5;
+  }, { passive: true });
+  new IntersectionObserver(([entree]) => {
+    jeu.visible = entree.isIntersecting;
+    relancerBoucle();
+  }).observe($("plateau"));
+  document.addEventListener("visibilitychange", relancerBoucle);
+  mouvementReduit.addEventListener("change", () => {
+    if (mouvementReduit.matches) {
+      for (const couche of jeu.couches) couche.style.transform = "";
+      jeu.couleur = [...jeu.couleurCible];
+      dessinerGemme();
+    } else {
+      relancerBoucle();
+    }
+  });
+  relancerBoucle();
+  requestAnimationFrame(() => basculerEventail(true));
+}
+
 function brancherControles() {
   const curseur = $("profondeur"), bascule = $("pondere");
   etat.profondeur = D.meta.reglage_retenu.profondeur;
@@ -1928,8 +2665,12 @@ function brancherControles() {
   bascule.checked = etat.pondere;
   curseur.addEventListener("input", () => { etat.profondeur = Number(curseur.value); actualiser(); });
   bascule.addEventListener("change", () => { etat.pondere = bascule.checked; actualiser(); });
+  curseur.addEventListener("change", noterJournal);
+  bascule.addEventListener("change", noterJournal);
   brancherGraphiques();
+  brancherConsole();
   actualiser();
+  noterJournal();
 }
 
 async function demarrer() {

@@ -91,6 +91,7 @@ Sous macOS ou Linux, remplacer la ligne d'activation par
 | `docs/index.html` | Le site, servi par GitHub Pages |
 | `docs/data/resultats.json` | Les résultats produits par `generer_resultats.py` |
 | `docs/notebook/` | La version en ligne du notebook, générée par `marimo export html-wasm` |
+| `custom.css` | Le style du notebook, assorti à celui du site |
 | `requirements.txt` | Les versions des bibliothèques |
 
 ## Données

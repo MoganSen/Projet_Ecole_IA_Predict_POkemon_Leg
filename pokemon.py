@@ -1,7 +1,15 @@
 import marimo
 
 __generated_with = "0.25.2"
-app = marimo.App(width="medium")
+app = marimo.App(width="medium", css_file="custom.css")
+
+
+@app.cell
+def _(mo):
+    mo.md(r"""
+    [← Retour au site](https://mogansen.github.io/Projet_Ecole_IA_Predict_POkemon_Leg/)
+    """)
+    return
 
 
 @app.cell
