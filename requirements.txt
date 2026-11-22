@@ -1,0 +1,4 @@
+marimo==0.25.2
+pandas
+scikit-learn==1.9.1
+altair

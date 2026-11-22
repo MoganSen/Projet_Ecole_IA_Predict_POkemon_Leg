@@ -1,0 +1,24 @@
+# Environnement virtuel Python — des milliers de fichiers, jamais sur GitHub
+.venv/
+venv/
+env/
+
+# Cache Python
+__pycache__/
+*.py[cod]
+
+# Données de session marimo (sorties mises en cache, régénérées à l'ouverture)
+__marimo__/
+
+# Dossiers générés par l'export du notebook
+dist/
+_site/
+
+# Fichiers système
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Réglages d'éditeur
+.vscode/
+.idea/
