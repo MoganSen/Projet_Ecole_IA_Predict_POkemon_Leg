@@ -63,8 +63,8 @@ données classe à tort.
 ## Lancer le notebook en local
 
 ```powershell
-git clone https://github.com/<ton-compte>/<ton-depot>.git
-cd <ton-depot>
+git clone https://github.com/MoganSen/Projet_M1C_IA_PredictPOKE.git
+cd Projet_M1C_IA_PredictPOKE
 python -m venv .venv
 .venv\Scripts\Activate.ps1
 pip install -r requirements.txt
@@ -104,6 +104,11 @@ auxquels s'ajoutent les méga-évolutions et les formes alternatives.
   rappel, et une partie des écarts observés relève du bruit statistique.
 - Seules les six statistiques de base sont utilisées ; le type, la génération et
   le total ne sont pas exploités.
+
+## Utilisation de l'IA
+
+Une IA a été utilisée comme aide pour le design et le code du notebook, la
+compréhension du projet et la rédaction du README.
 
 ## Auteur
 

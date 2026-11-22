@@ -1,4 +1,4 @@
 marimo==0.25.2
-pandas
+pandas==3.1.0
 scikit-learn==1.9.1
-altair
+altair==6.3.0
