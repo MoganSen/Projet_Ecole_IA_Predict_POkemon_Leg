@@ -59,7 +59,16 @@ def _():
 @app.cell
 def _(mo, pd):
     chemin_csv = mo.notebook_location() / "public" / "Pokemon.csv"
-    df = pd.read_csv(str(chemin_csv))
+    # En ligne, on télécharge d'abord le fichier : GitHub Pages le compresse
+    # pendant le transfert, et pandas tenterait de le décompresser une 2e fois.
+    if str(chemin_csv).startswith("http"):
+        import io as _io
+        import urllib.request as _requete
+
+        with _requete.urlopen(str(chemin_csv)) as _reponse:
+            df = pd.read_csv(_io.BytesIO(_reponse.read()))
+    else:
+        df = pd.read_csv(chemin_csv)
     df
     return (df,)
 
