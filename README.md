@@ -5,7 +5,7 @@ reconnaître les Pokémon légendaires à partir de leurs six statistiques de
 combat — et qui s'en sert pour illustrer le surapprentissage, le déséquilibre
 des classes et le compromis rappel / précision.
 
-**▶️ [Essayer le notebook en ligne](#)** *(lien à venir)*
+**▶️ [Essayer le notebook en ligne](https://mogansen.github.io/Projet_Ecole_IA_Predict_POkemon_Leg/)**
 
 > Travail réalisé dans le cadre du cours « Fondamentaux de l'IA et bonnes
 > pratiques », séance 2 — Mastère 1 Cybersécurité, OTERIA, novembre 2026.
