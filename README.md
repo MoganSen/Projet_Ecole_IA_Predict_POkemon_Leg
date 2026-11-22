@@ -63,8 +63,8 @@ données classe à tort.
 ## Lancer le notebook en local
 
 ```powershell
-git clone https://github.com/MoganSen/Projet_M1C_IA_PredictPOKE.git
-cd Projet_M1C_IA_PredictPOKE
+git clone https://github.com/MoganSen/Projet_Ecole_IA_Predict_POkemon_Leg.git
+cd Projet_Ecole_IA_Predict_POkemon_Leg
 python -m venv .venv
 .venv\Scripts\Activate.ps1
 pip install -r requirements.txt
