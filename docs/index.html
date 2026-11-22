@@ -7,64 +7,92 @@
 <title>Prédire si un Pokémon est légendaire</title>
 <meta name="description" content="Un arbre de décision, ses réglages en direct, et ce qu'ils changent : surapprentissage, déséquilibre des classes, compromis rappel / précision.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='%232F6FD0' stroke='%23fff' stroke-width='3'/%3E%3Ccircle cx='11' cy='11' r='3.5' fill='%23fff'/%3E%3C/svg%3E">
+<link rel="preload" href="fonts/Bangers-Latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/SpaceGrotesk-Variable.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/JetBrainsMono-Variable.woff2" as="font" type="font/woff2" crossorigin>
 <style>
+/* ---------- Polices hébergées (licence SIL OFL 1.1, voir docs/fonts) ---------- */
+@font-face {
+  font-family: "Bangers";
+  src: url("fonts/Bangers-Latin.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Space Grotesk";
+  src: url("fonts/SpaceGrotesk-Variable.woff2") format("woff2");
+  font-weight: 300 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("fonts/JetBrainsMono-Variable.woff2") format("woff2");
+  font-weight: 100 800;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* ---------- Palette ---------- */
 :root {
-  --rouge: #C62F2F;
+  --coque: #2F2E8B;
+  --coque-clair: #5553E0;
+  --coque-sombre: #17174F;
+  --encre: #14142F;
+  --accent: #FF4D6D;
+  --jaune: #FFD23F;
+  --turquoise: #16C7B8;
+  --surface-page: #11123A;
+  --fond: #FFF8E8;
+  --surface: #FFFDF6;
+  --texte: #1B1C3A;
+  --texte-2: #55587A;
+  --bord: #E4DAC2;
+  --afficheur: #F4EBD5;
+  --afficheur-texte: #1B1C3A;
+  --contour: #14142F;
+  --ombre-dure: 3px 3px 0 #14142F;
+  --rouge: #D92B50;
+  --rouge-texte: #B81F41;
   --sur-rouge: #FFFFFF;
-  --fond: #F6F6F3;
-  --surface: #FFFFFF;
-  --texte: #15171C;
-  --texte-2: #5A5F6B;
-  --bleu: #2F6FD0;
-  --ambre: #E8A317;
-  --vert: #2E8B57;
-  --bord: #E2E2DD;
-  --ombre: 0 1px 2px rgb(21 23 28 / .06), 0 6px 18px rgb(21 23 28 / .05);
-  --police: system-ui, -apple-system, "Segoe UI", sans-serif;
-  --mono: ui-monospace, "JetBrains Mono", Consolas, monospace;
-  --rayon: 14px;
+  --bleu: #2F55D4;
+  --ambre: #E08A00;
+  --vert: #0F8F7F;
+  --ombre: none;
+  --police: "Space Grotesk", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --titre: "Bangers", "Space Grotesk", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+  --rayon: 12px;
   --duree: 160ms;
-  --fond-ciel: #3d86cf;
-  --fond-herbe: #4a9b5e;
-  --pastille-haut: #fffaf4;
-  --pastille-bas: #f3e9de;
-  --encre: #1f3f8f;
-  --rouge-dex: #C62F2F;
-  --lentille: #2F6FD0;
-  --nuage-decor: rgb(255 255 255 / .82);
   color-scheme: light dark;
 }
 @media (prefers-color-scheme: dark) {
   :root {
-    --rouge: #E05252;
-    --sur-rouge: #14161A;
-    --fond: #14161A;
-    --surface: #1D2026;
-    --texte: #E8E8E6;
-    --texte-2: #9AA0AC;
-    --bleu: #5B93E8;
-    --ambre: #F0B840;
-    --vert: #4CAF7D;
-    --bord: #2A2E36;
-    --ombre: 0 1px 2px rgb(0 0 0 / .3);
-    --fond-ciel: #173a63;
-    --fond-herbe: #1f4a30;
-    --pastille-haut: #f3ebdf;
-    --pastille-bas: #e2d7c8;
-    --encre: #1f3f8f;
-    --rouge-dex: #a92a2a;
-    --lentille: #5B93E8;
-    --nuage-decor: rgb(255 255 255 / .13);
+    --fond: #12132E;
+    --surface: #1B1C42;
+    --texte: #EEF0FF;
+    --texte-2: #A9ADD4;
+    --bord: #34366B;
+    --afficheur: #0D0E26;
+    --afficheur-texte: #C9FFF4;
+    --contour: #5A5DB8;
+    --ombre-dure: 3px 3px 0 #05061A;
+    --rouge: #F0557A;
+    --rouge-texte: #FF9AAE;
+    --sur-rouge: #14142F;
+    --bleu: #6685F2;
+    --ambre: #FFC14D;
+    --vert: #3FE0CB;
   }
 }
 
 /* ---------- Base ---------- */
 *, *::before, *::after { box-sizing: border-box; }
-html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+html { -webkit-text-size-adjust: 100%; }
 body {
   margin: 0;
-  background: var(--fond);
+  background: var(--surface-page);
   color: var(--texte);
   font-family: var(--police);
   font-size: 1rem;
@@ -79,7 +107,6 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   outline: 3px solid var(--bleu);
   outline-offset: 2px;
 }
-.conteneur { width: min(100% - 32px, 1120px); margin-inline: auto; }
 .nombre { font-family: var(--mono); font-variant-numeric: tabular-nums; }
 .surtitre {
   color: var(--texte-2);
@@ -100,80 +127,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 }
 .lien-evitement:focus { top: 8px; }
 
-/* ---------- En-tête de l'appareil ---------- */
-.appareil {
-  background: var(--rouge);
-  color: var(--sur-rouge);
-  border-bottom: 5px solid color-mix(in srgb, var(--rouge) 72%, #000);
-}
-.appareil-interieur {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: center;
-  gap: clamp(1rem, 3vw, 2rem);
-  padding-block: clamp(1rem, 2.5vw, 1.6rem);
-}
-.capteurs { display: flex; align-items: flex-start; gap: .9rem; }
-.lentille {
-  position: relative;
-  display: block;
-  width: 76px;
-  height: 76px;
-  border-radius: 50%;
-  border: 5px solid #fff;
-  background: radial-gradient(circle at 38% 36%, #7fb2f5 0%, #2F6FD0 48%, #173f83 100%);
-  box-shadow: 0 0 0 2px rgb(0 0 0 / .35), inset 0 -5px 10px rgb(0 0 0 / .3);
-}
-.lentille::after {
-  content: "";
-  position: absolute;
-  left: 15%;
-  top: 14%;
-  width: 28%;
-  height: 22%;
-  border-radius: 50%;
-  background: rgb(255 255 255 / .92);
-  transform: rotate(-32deg);
-}
-.pastilles { display: flex; gap: .4rem; padding-top: .15rem; }
-.pastille {
-  width: 13px;
-  height: 13px;
-  border-radius: 50%;
-  border: 1.5px solid rgb(0 0 0 / .45);
-  box-shadow: inset 1px 1px 1px rgb(255 255 255 / .65);
-}
-.pastille-rouge { background: #ff6b63; }
-.pastille-jaune { background: #f6c945; }
-.pastille-verte { background: #55c98a; }
-.titre-appareil .surtitre { color: inherit; opacity: .92; margin-bottom: .3rem; }
-.titre-appareil h1 {
-  font-size: clamp(1.5rem, 1.05rem + 1.9vw, 2.35rem);
-  font-weight: 800;
-  letter-spacing: -.02em;
-}
-.bouton {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: .5rem;
-  min-height: 44px;
-  padding: .55rem 1rem;
-  border-radius: 10px;
-  border: 1px solid var(--bord);
-  background: var(--surface);
-  color: var(--texte);
-  font-weight: 700;
-  font-size: .95rem;
-  text-decoration: none;
-  white-space: nowrap;
-  transition: transform var(--duree) ease, box-shadow var(--duree) ease;
-}
-.bouton:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgb(0 0 0 / .22); }
-.appareil .bouton:focus-visible { outline-color: var(--sur-rouge); }
-
 /* ---------- Sections ---------- */
-main { padding-block: clamp(1.75rem, 4vw, 3rem); }
 .section + .section { margin-top: clamp(2.25rem, 5vw, 3.5rem); }
 .section-tete { margin-bottom: 1rem; }
 .carte {
@@ -252,86 +206,6 @@ main { padding-block: clamp(1.75rem, 4vw, 3rem); }
 }
 .intro { max-width: 76ch; }
 div.intro { display: grid; gap: .7rem; }
-.panneau {
-  position: sticky;
-  top: 10px;
-  z-index: 30;
-  display: grid;
-  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr) auto;
-  align-items: center;
-  gap: .75rem 1.75rem;
-  margin: 1.1rem 0 1rem;
-  padding: .8rem 1.15rem;
-  background: var(--surface);
-  color: var(--texte);
-  border: 3px solid color-mix(in srgb, var(--texte) 72%, var(--surface));
-  border-radius: 18px;
-  box-shadow: 0 8px 22px rgb(0 0 0 / .14);
-}
-.reglage-tete {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: .75rem;
-  font-weight: 700;
-  line-height: 1.25;
-}
-.valeur-reglage { color: var(--rouge); font-size: 1.3rem; font-weight: 700; }
-.panneau input[type="range"] {
-  display: block;
-  width: 100%;
-  height: 28px;
-  margin: 0;
-  accent-color: var(--rouge);
-  cursor: pointer;
-}
-.aide { color: var(--texte-2); font-size: .8rem; line-height: 1.35; }
-.interrupteur {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: .7rem;
-  min-height: 44px;
-  font-weight: 700;
-  line-height: 1.25;
-  cursor: pointer;
-}
-.interrupteur input {
-  position: absolute;
-  width: 46px;
-  height: 26px;
-  margin: 0;
-  opacity: 0;
-  cursor: pointer;
-}
-.piste {
-  position: relative;
-  flex: none;
-  width: 46px;
-  height: 26px;
-  border: 1px solid var(--texte-2);
-  border-radius: 999px;
-  background: var(--bord);
-  transition: background var(--duree) ease, border-color var(--duree) ease;
-}
-.piste::after {
-  content: "";
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: var(--texte-2);
-  transition: transform var(--duree) ease, background var(--duree) ease;
-}
-.interrupteur input:checked + .piste { background: var(--rouge); border-color: var(--rouge); }
-.interrupteur input:checked + .piste::after { transform: translateX(20px); background: var(--sur-rouge); }
-.interrupteur input:focus-visible + .piste { outline: 3px solid var(--bleu); outline-offset: 2px; }
-.etat-arbre { color: var(--texte-2); font-size: .82rem; line-height: 1.4; text-align: right; white-space: nowrap; }
-.etat-arbre strong { color: var(--texte); }
-.badge-retenu { color: var(--vert); font-weight: 700; }
-
 /* ---------- Explications en direct ---------- */
 .explications {
   display: grid;
@@ -631,8 +505,6 @@ code {
 @media (max-width: 1000px) {
   .donnees { grid-template-columns: minmax(0, 1fr); }
   .confusion { grid-template-columns: minmax(0, 1fr); }
-  .panneau { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); }
-  .etat-arbre { display: none; }
   .mesures { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
@@ -653,24 +525,7 @@ code {
 
 /* ---------- Téléphone ---------- */
 @media (max-width: 760px) {
-  .appareil-interieur { grid-template-columns: minmax(0, 1fr); gap: .85rem; }
-  .lentille { width: 54px; height: 54px; border-width: 4px; }
-  .bouton { width: 100%; }
   .probleme, .pied-grille { grid-template-columns: minmax(0, 1fr); }
-  .panneau {
-    position: sticky;
-    top: auto;
-    bottom: 6px;
-    order: 99;
-    z-index: 40;
-    grid-template-columns: minmax(0, 1fr);
-    gap: .1rem;
-    margin: 1rem 0 0;
-    padding: .5rem .85rem calc(.35rem + env(safe-area-inset-bottom));
-    border-radius: 16px;
-  }
-  .panneau .aide { display: none; }
-  .interrupteur { min-height: 40px; font-size: .92rem; }
   .explications, .mesures { grid-template-columns: minmax(0, 1fr); }
   .explications { margin-top: 1.1rem; }
   .mesure {
@@ -696,350 +551,621 @@ code {
   #nuage { min-height: 300px; }
   .regles { max-height: 20rem; font-size: .72rem; }
   .prose { scroll-margin-top: 12px; }
-  .prose th, .prose td { padding: .35rem .25rem; }
-  .prose thead th { white-space: normal; vertical-align: bottom; font-size: .72rem; line-height: 1.2; }
-  .prose table { font-size: .78rem; }
+  .prose th, .prose td { padding: .32rem .16rem; }
+  .prose thead th { white-space: normal; vertical-align: bottom; font-size: .64rem; line-height: 1.2; }
+  .prose table { font-size: .7rem; }
   .vers-notebook { flex-direction: column; align-items: stretch; }
 }
 
-/* ---------- Phase 2 : console de jeu ---------- */
-.scene {
+/* ---------- La console : style animé / jeu vidéo ---------- */
+html, body { height: 100%; overflow: hidden; }
+body {
+  background-color: var(--surface-page);
+  background-image:
+    repeating-conic-gradient(from 0deg at 50% 10%, rgb(255 255 255 / .04) 0 3deg, transparent 3deg 9deg),
+    radial-gradient(circle at 50% 10%, #2C2C8C 0, var(--surface-page) 64%);
+}
+.lecture { width: min(100%, 1060px); margin-inline: auto; }
+.boitier {
   position: relative;
   isolation: isolate;
-  clip-path: inset(0);
-  margin-top: clamp(2rem, 5vw, 3.5rem);
-  padding-block: clamp(.75rem, 3vw, 2.5rem);
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto auto;
+  gap: 9px;
+  width: min(100% - 28px, 1380px);
+  height: calc(100dvh - 30px);
+  margin: 10px auto 0;
+  padding: 13px 18px 11px;
+  border: 4px solid var(--encre);
+  border-radius: 26px;
+  background: linear-gradient(180deg, var(--coque-clair) 0, var(--coque) 9%, var(--coque) 88%, var(--coque-sombre) 100%);
+  color: #F3F3FF;
+  box-shadow: 0 0 0 2px rgb(255 255 255 / .16), 7px 9px 0 rgb(0 0 0 / .45);
 }
-.scene + .conteneur { margin-top: clamp(2rem, 5vw, 3.5rem); }
-.scene-fond {
-  position: fixed;
-  inset: -8%;
-  z-index: -2;
+.vis {
+  position: absolute;
+  z-index: 2;
+  width: 10px;
+  height: 10px;
+  border: 1.5px solid var(--encre);
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #FFF0A8, #E0A500 75%);
+}
+.vis::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 2.5px;
+  height: 1.5px;
+  background: var(--encre);
+  transform: rotate(35deg);
+}
+.vis-hg { left: 4px; top: 4px; }
+.vis-hd { right: 4px; top: 4px; }
+.vis-bg { left: 4px; bottom: 4px; }
+.vis-bd { right: 4px; bottom: 4px; }
+
+/* Bandeau */
+.bandeau {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 16px;
+  padding: 6px 14px;
+  overflow: hidden;
+  border: 3px solid var(--encre);
+  border-radius: 16px;
   background:
-    radial-gradient(55% 45% at 18% 14%, color-mix(in srgb, var(--fond-ciel) 62%, #fff) 0, transparent 72%),
-    radial-gradient(48% 42% at 86% 30%, color-mix(in srgb, var(--fond-ciel) 74%, #0b2146) 0, transparent 72%),
-    linear-gradient(180deg, var(--fond-ciel) 0%, var(--fond-ciel) 54%, var(--fond-herbe) 100%);
-  filter: blur(40px) saturate(1.1);
-  transform: scale(1.05);
-  pointer-events: none;
+    radial-gradient(rgb(255 255 255 / .15) 1.1px, transparent 1.7px) right center / 7px 7px,
+    repeating-conic-gradient(from 0deg at 62px 50%, rgb(255 255 255 / .09) 0 4deg, transparent 4deg 12deg),
+    linear-gradient(100deg, #C32555 0, #6B2BB5 52%, #4A48CC 100%);
+  color: #FFFFFF;
 }
-.scene-grain {
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  opacity: .22;
-  mix-blend-mode: overlay;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
-  pointer-events: none;
+.titre-appareil { min-width: 0; }
+.titre-appareil .surtitre { color: #FFE98A; font-size: 11px; letter-spacing: .12em; }
+.titre-appareil h1 {
+  color: #FFFFFF;
+  font-size: clamp(1.65rem, 1.05rem + 2vw, 2.85rem);
+  line-height: 1;
+  text-shadow: 3px 3px 0 var(--encre);
 }
-.console {
-  width: min(100% - 20px, 1180px);
-  margin-inline: auto;
-  padding: clamp(6px, .9vw, 12px);
-  border-radius: clamp(20px, 2.4vw, 32px);
-  background: linear-gradient(180deg, color-mix(in srgb, var(--rouge-dex) 88%, #fff), var(--rouge-dex));
-  box-shadow: 0 18px 50px rgb(8 28 60 / .42), inset 0 2px 0 rgb(255 255 255 / .34), inset 0 -4px 0 rgb(0 0 0 / .2);
+.legende-mascotte { margin-top: 3px; color: #F5EEFF; font-size: .76rem; line-height: 1.3; }
+.legende-mascotte strong { color: #FFFFFF; font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.grille-hp {
+  width: 92px;
+  height: 46px;
+  border: 2px solid var(--encre);
+  border-radius: 9px;
+  background: repeating-linear-gradient(45deg, #14142F 0 1.5px, #3B3AA6 1.5px 4px);
+  box-shadow: inset 0 2px 3px rgb(0 0 0 / .7);
+}
+.bandeau-droite { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; }
+.reference { color: #FFE98A; font-size: 10.5px; font-weight: 700; letter-spacing: .22em; }
+.bouton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .45rem;
+  min-height: 40px;
+  padding: .4rem .9rem;
+  border: 3px solid var(--encre);
+  border-radius: 10px;
+  background: linear-gradient(180deg, #FFF0A8, var(--jaune));
+  color: var(--encre);
+  font-size: .86rem;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+  box-shadow: 0 4px 0 var(--encre);
+  transition: transform .08s ease, box-shadow .08s ease;
+}
+.bouton:hover { background: linear-gradient(180deg, #FFF7CC, #FFDD66); }
+.bouton:active { transform: translateY(4px); box-shadow: 0 0 0 var(--encre); }
+.bouton:focus-visible { outline: 3px solid #FFFFFF; outline-offset: 2px; }
+.ecran .bouton:focus-visible { outline-color: var(--bleu); }
+
+/* Nodo, la mascotte indicatrice */
+.mascotte { --halo-rgb: 46 139 87; --pulse: .6; flex: none; width: 88px; height: 88px; overflow: visible; }
+.m-aura {
+  fill: rgb(var(--halo-rgb));
+  opacity: calc(.38 + .42 * var(--pulse));
+  transform: scale(calc(.92 + .1 * var(--pulse)));
+  transform-origin: 60px 64px;
+}
+.m-corps { transform: translateY(calc(var(--pulse) * -4px)); }
+.m-trait { fill: none; stroke: var(--encre); stroke-width: 4; stroke-linecap: round; }
+.m-noeud { fill: var(--jaune); stroke: var(--encre); stroke-width: 3; }
+.m-feuille { fill: rgb(var(--halo-rgb)); stroke: var(--encre); stroke-width: 3; }
+.m-oreille { fill: var(--accent); stroke: var(--encre); stroke-width: 3.5; }
+.m-pied { fill: #5553E0; stroke: var(--encre); stroke-width: 3.5; }
+.m-tete { fill: #FFF3D6; stroke: var(--encre); stroke-width: 4; }
+.m-ombre { fill: #F2D9A8; }
+.m-visiere { fill: #1B1C3A; stroke: var(--encre); stroke-width: 3; }
+.m-joue { fill: #FF8FA3; opacity: .85; }
+.yeux { display: none; }
+.m-oeil { fill: #7DF9EA; }
+.m-reflet { fill: #FFFFFF; }
+.m-ligne { fill: none; stroke: #7DF9EA; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.yeux-vertige .m-ligne { stroke: #FF8FA3; stroke-width: 2.4; }
+[data-humeur="calme"] .yeux-calme,
+[data-humeur="concentre"] .yeux-concentre,
+[data-humeur="vertige"] .yeux-vertige { display: inline; }
+
+/* Écran */
+.ecran-cadre {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 176px;
+  min-height: 0;
+  overflow: hidden;
+  border: 4px solid var(--encre);
+  border-radius: 16px;
+  background: var(--fond);
+  box-shadow: 0 0 0 2px rgb(255 255 255 / .18);
 }
 .ecran {
-  display: flex;
-  flex-direction: column;
-  padding: clamp(.85rem, 2.4vw, 1.75rem);
-  border-radius: clamp(14px, 1.8vw, 22px);
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
   background: var(--fond);
   color: var(--texte);
+  scroll-behavior: smooth;
+  scrollbar-color: var(--contour) transparent;
 }
-.ecran > * { min-width: 0; }
-
-/* Le plateau : 1em y vaut 1 % de sa largeur, pour le décor uniquement. */
-.plateau {
-  --u: 11px;
-  position: relative;
-  min-height: max(47em, 33rem);
-  margin-top: 1rem;
-  overflow: hidden;
-  border: 3px solid color-mix(in srgb, var(--encre) 72%, #000);
-  border-radius: 18px;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--fond-ciel) 76%, #fff) 0%, var(--fond-ciel) 58%, var(--fond-herbe) 100%);
-  color: var(--encre);
-  font-size: 11px;
-  line-height: 1.35;
+.ecran:focus-visible { outline: 3px solid var(--bleu); outline-offset: -3px; }
+main { padding: clamp(16px, 2.6vw, 32px); }
+main:focus { outline: none; }
+.envols-colonne {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 0;
+  padding: 10px 8px;
+  border-left: 3px solid var(--encre);
+  background:
+    radial-gradient(rgb(255 255 255 / .08) 1px, transparent 1.5px) 0 0 / 8px 8px,
+    #1B1C4F;
+  color: #FFE98A;
 }
-.decor { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
-.couche { position: absolute; display: block; will-change: transform; }
-.cumulus { fill: var(--nuage-decor); }
-.cumulus-a { left: 3%; top: 39%; width: 10em; }
-.cumulus-b { right: 3%; top: 37%; width: 10em; }
-.cumulus-c { left: 31%; top: 12%; width: 9em; opacity: .75; }
-.colline { left: -4em; bottom: -1em; width: calc(100% + 8em); }
-.colline-loin { height: 21em; fill: color-mix(in srgb, var(--fond-herbe) 70%, var(--fond-ciel)); }
-.colline-proche { height: 12em; fill: var(--fond-herbe); }
-
-/* Journal des réglages essayés */
-.journal-bloc {
+.envols-titre { font-size: 10.5px; font-weight: 700; letter-spacing: .1em; line-height: 1.25; text-align: center; text-transform: uppercase; }
+.envols { position: relative; flex: 1; min-height: 0; overflow: hidden; }
+.envol {
   position: absolute;
-  z-index: 6;
-  top: .6rem;
-  left: .6rem;
-  right: .6rem;
-  display: flex;
-  align-items: center;
-  gap: .5rem;
-  pointer-events: none;
-}
-.journal-titre {
-  flex: none;
-  padding: .18rem .6rem;
-  border-radius: 999px;
-  background: rgb(255 250 244 / .94);
+  max-width: 100%;
+  padding: .1rem .45rem;
+  overflow: hidden;
+  border: 2px solid var(--encre);
+  border-radius: 6px;
   color: var(--encre);
+  font-family: var(--police);
   font-size: .72rem;
-  font-weight: 800;
+  font-weight: 700;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  box-shadow: 2px 2px 0 var(--encre);
 }
-.journal {
-  display: flex;
-  gap: .32rem;
-  margin: 0;
-  padding: 5px;
-  overflow-x: auto;
-  list-style: none;
-  pointer-events: auto;
-  scrollbar-width: none;
+.envol-gagne { background: #5FF0C8; }
+.envol-perdu { background: #C5C8DA; }
+.envol-alerte { background: #FF8FA3; }
+
+/* Bande d'état */
+.etat {
+  display: grid;
+  grid-template-columns: minmax(170px, .85fr) minmax(0, 1.6fr) auto;
+  align-items: center;
+  gap: 14px;
+  padding: 5px 12px;
+  border: 3px solid var(--encre);
+  border-radius: 12px;
+  background: #14143C;
+  color: #EEF0FF;
 }
+.journal-bloc { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.journal-titre { color: #FFE98A; font-size: 10px; font-weight: 700; letter-spacing: .06em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.journal { display: flex; gap: 5px; min-height: 40px; margin: 0; padding: 4px; overflow-x: auto; list-style: none; scrollbar-width: none; }
 .journal::-webkit-scrollbar { display: none; }
 .journal li { flex: none; }
 .jeton {
   position: relative;
   display: grid;
   place-items: center;
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   padding: 0;
-  border: 0;
+  border: 2px solid var(--encre);
   border-radius: 50%;
-  background: linear-gradient(180deg, var(--pastille-haut), var(--pastille-bas));
+  background: linear-gradient(180deg, #FFFDF6, #FFE9B8);
   color: var(--encre);
   font-family: var(--mono);
-  font-size: .82rem;
+  font-size: .76rem;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
   cursor: pointer;
-  box-shadow: 0 2px 5px rgb(20 50 110 / .32);
 }
-.jeton svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.jeton svg { position: absolute; inset: -1px; width: calc(100% + 2px); height: calc(100% + 2px); }
 .jeton span { position: relative; }
-.jeton-fond { fill: none; stroke: rgb(31 63 143 / .16); stroke-width: 3; }
-.jeton-anneau { fill: none; stroke-width: 3; stroke-linecap: round; }
-.jeton[aria-current="true"] { outline: 3px solid var(--encre); outline-offset: 1px; }
-.jeton:focus-visible { outline: 3px solid var(--rouge-dex); outline-offset: 1px; }
+.jeton-fond { fill: none; stroke: rgb(20 20 47 / .18); stroke-width: 3; }
+.jeton-anneau { fill: none; stroke-width: 3.5; stroke-linecap: round; }
+.jeton[aria-current="true"] { outline: 3px solid var(--accent); outline-offset: 1px; }
+.jeton:focus-visible { outline: 3px solid #FFFFFF; outline-offset: 1px; }
 .jeton-pondere::after {
   content: "";
   position: absolute;
-  top: 1px;
-  right: 1px;
-  width: 9px;
-  height: 9px;
-  border: 1.5px solid #fffaf4;
+  top: -2px;
+  right: -2px;
+  width: 10px;
+  height: 10px;
+  border: 2px solid var(--encre);
   border-radius: 50%;
-  background: var(--rouge-dex);
+  background: var(--accent);
 }
+.etat-messages { min-width: 0; font-size: .8rem; line-height: 1.3; }
+.phrase-jeu { color: #FFFFFF; font-weight: 700; }
+#bilan { color: #BFC3EA; font-size: .74rem; }
+.etat-arbre { color: #BFC3EA; font-size: .76rem; line-height: 1.35; text-align: right; white-space: nowrap; }
+.etat-arbre strong { color: #FFFFFF; }
+.badge-retenu { color: #5FF0C8; font-weight: 700; }
 
-/* Pastilles */
-.pastille-jeu {
+/* Commandes */
+.pupitre {
+  display: grid;
+  grid-template-columns: minmax(250px, 1.15fr) 214px minmax(340px, 1.6fr);
+  gap: 20px;
+  padding: 3px 8px 2px;
+}
+.commande { min-width: 0; border-radius: 8px; }
+.grave {
+  display: block;
+  color: #FFE98A;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  line-height: 1.25;
+  text-transform: uppercase;
+}
+.libelle-court { display: none; }
+.pupitre .aide { margin-top: 2px; color: #C9CBF2; font-size: .72rem; line-height: 1.25; }
+.ligne-curseur { display: flex; align-items: flex-start; gap: 12px; margin-top: 3px; }
+.rainure { flex: 1; min-width: 0; }
+#profondeur {
+  --pos: calc(12px + (100% - 24px) * var(--progres, .2143));
+  display: block;
+  width: 100%;
+  height: 26px;
+  margin: 0;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+}
+#profondeur::-webkit-slider-runnable-track {
+  height: 12px;
+  border: 2.5px solid var(--encre);
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--accent) var(--pos), #0D0E2B var(--pos));
+}
+#profondeur::-moz-range-track {
+  height: 7px;
+  border: 2.5px solid var(--encre);
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--accent) var(--pos), #0D0E2B var(--pos));
+}
+#profondeur::-webkit-slider-thumb {
+  appearance: none;
+  width: 24px;
+  height: 24px;
+  margin-top: -8.5px;
+  border: 3px solid var(--encre);
+  border-radius: 7px;
+  background: linear-gradient(180deg, #FFF0A8, var(--jaune));
+  box-shadow: 0 2px 0 var(--encre);
+}
+#profondeur::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border: 3px solid var(--encre);
+  border-radius: 7px;
+  background: linear-gradient(180deg, #FFF0A8, var(--jaune));
+  box-shadow: 0 2px 0 var(--encre);
+}
+#profondeur:focus-visible { outline: none; }
+#profondeur:focus-visible::-webkit-slider-thumb { outline: 3px solid #FFFFFF; outline-offset: 2px; }
+#profondeur:focus-visible::-moz-range-thumb { outline: 3px solid #FFFFFF; outline-offset: 2px; }
+.graduations { display: flex; justify-content: space-between; padding-inline: 12px; color: #C9CBF2; font-family: var(--mono); font-size: 9px; line-height: 1; }
+.graduations span { position: relative; display: flex; justify-content: center; width: 0; padding-top: 5px; }
+.graduations span::before { content: ""; position: absolute; top: 0; width: 1.5px; height: 4px; background: #C9CBF2; }
+.fenetre {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 52px;
+  height: 38px;
+  border: 3px solid var(--encre);
+  border-radius: 8px;
+  background: #0D0E2B;
+  color: var(--jaune);
+  font-size: 1.25rem;
+  font-weight: 800;
+}
+.inverseur {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+  margin-top: 3px;
+  color: #9EA2D8;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  cursor: pointer;
+}
+.inverseur input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+.inv-corps { position: relative; display: block; width: 58px; height: 30px; border: 3px solid var(--encre); border-radius: 8px; background: #0D0E2B; }
+.inv-levier {
+  position: absolute;
+  top: 1px;
+  left: 1px;
+  width: 26px;
+  height: 22px;
+  border: 2px solid var(--encre);
+  border-radius: 5px;
+  background: linear-gradient(180deg, #D8DAF0, #9EA2D8);
+  transition: transform .09s steps(2, end), background .09s linear;
+}
+.inverseur input:checked ~ .inv-corps .inv-levier { transform: translateX(25px); background: linear-gradient(180deg, #8DF7DC, var(--turquoise)); }
+.inverseur input:checked ~ .inv-on, .inverseur input:not(:checked) ~ .inv-off { color: #FFFFFF; }
+.inverseur input:focus-visible ~ .inv-corps { outline: 3px solid #FFFFFF; outline-offset: 2px; }
+.presets { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px 8px; margin-top: 4px; }
+.preset {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: .45em;
-  min-height: 42px;
-  padding: .45em 1.05em;
-  border: 0;
-  border-radius: 2em;
-  background: linear-gradient(180deg, var(--pastille-haut), var(--pastille-bas));
+  gap: 6px;
+  min-width: 0;
+  min-height: 33px;
+  padding: 3px 7px;
+  border: 2.5px solid var(--encre);
+  border-radius: 9px;
+  background: linear-gradient(180deg, #FFFDF6, #FFE9B8);
   color: var(--encre);
   font-family: var(--police);
-  font-size: .9rem;
-  font-weight: 800;
-  line-height: 1.1;
-  white-space: nowrap;
-  cursor: pointer;
-  transform: scale(var(--s, 1));
-  transition: transform .18s ease;
-  box-shadow:
-    0 .12em 0 rgba(255, 255, 255, .9) inset,
-    0 -.12em .2em rgba(160, 130, 100, .18) inset,
-    0 .35em .9em rgba(20, 50, 110, .28),
-    0 0 0 .06em rgba(120, 140, 190, .25);
-}
-.pastille-jeu svg {
-  flex: none;
-  width: 1.15em;
-  height: 1.15em;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.8;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  transition: transform .2s ease;
-}
-@media (hover: hover) {
-  .pastille-jeu:hover { --s: 1.08; background: linear-gradient(180deg, #fff, #fbf4ea); }
-  .pastille-jeu:hover svg { transform: rotate(-12deg); }
-}
-.pastille-jeu.creux { --s: .9; }
-.pastille-jeu:focus-visible { outline: 3px solid var(--encre); outline-offset: 2px; }
-.preset[aria-pressed="true"] {
-  box-shadow:
-    0 .12em 0 rgba(255, 255, 255, .9) inset,
-    0 -.12em .2em rgba(160, 130, 100, .18) inset,
-    0 .35em .9em rgba(20, 50, 110, .28),
-    0 0 0 .17em var(--rouge-dex);
-}
-
-/* Centre : gemme, légende, phrase */
-.centre {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: .42rem;
-  padding: 3.4rem 1rem .8rem;
-  pointer-events: none;
-}
-.gemme {
-  position: relative;
-  z-index: 2;
-  flex: none;
-  width: 21em;
-  height: 24em;
-  overflow: visible;
-  filter: drop-shadow(0 1em .8em rgb(10 30 60 / .35));
-}
-.facette { stroke-width: .8; stroke-linejoin: round; }
-.info-jeu {
-  position: relative;
-  z-index: 6;
-  max-width: min(100%, calc(48 * var(--u)));
-  padding: .24rem .75rem;
-  border-radius: 12px;
-  background: rgb(255 250 244 / .95);
-  color: var(--encre);
-  font-size: .78rem;
-  line-height: 1.35;
-  text-align: center;
-}
-.info-jeu strong { font-family: var(--mono); font-variant-numeric: tabular-nums; }
-.phrase-jeu { min-height: 1.75rem; font-size: .84rem; font-weight: 700; }
-.bouton-eventail { position: relative; z-index: 6; pointer-events: auto; }
-
-/* Éventail des réglages nommés */
-.eventail { position: absolute; left: 50%; top: 42%; z-index: 6; width: 0; height: 0; }
-.preset {
-  position: absolute;
-  left: 0;
-  top: 0;
-  visibility: hidden;
-  transform: translate(-50%, -50%) scale(0);
-  transition: transform .45s cubic-bezier(.3, 1.6, .5, 1), visibility 0s linear .45s;
-  transition-delay: calc((5 - var(--i)) * 30ms), calc(.45s + (5 - var(--i)) * 30ms);
-}
-.eventail.ouvert .preset {
-  visibility: visible;
-  transform: translate(calc(-50% + var(--x) * var(--u)), calc(-50% + var(--y) * var(--u))) scale(var(--s, 1));
-  transition-delay: calc(var(--i) * 45ms), 0s;
-}
-.eventail.pose .preset { transition: transform .18s ease; transition-delay: 0s; }
-
-/* Pokémon qui s'envolent */
-.envols { position: absolute; inset: 0 0 auto; z-index: 5; height: 100%; overflow: hidden; pointer-events: none; }
-.envol {
-  position: absolute;
-  max-width: min(48%, 15rem);
-  padding: .16rem .6rem;
-  overflow: hidden;
-  border-radius: 999px;
-  color: #fff;
   font-size: .8rem;
   font-weight: 700;
-  line-height: 1.35;
-  text-overflow: ellipsis;
+  line-height: 1.05;
   white-space: nowrap;
-  box-shadow: 0 3px 8px rgb(0 0 0 / .3);
+  cursor: pointer;
+  box-shadow: 0 3px 0 var(--encre);
+  transition: transform .07s ease, box-shadow .07s ease;
 }
-.envol-gagne { background: #1f7a4a; }
-.envol-perdu { background: #5A5F6B; }
-.envol-alerte { background: #C62F2F; }
+.preset svg { flex: none; width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.preset:hover { background: linear-gradient(180deg, #FFF7CC, var(--jaune)); }
+.preset:active, .preset.creux { transform: translateY(3px); box-shadow: 0 0 0 var(--encre); }
+.preset[aria-pressed="true"] { background: linear-gradient(180deg, #FFB1BF, var(--accent)); }
+.preset:focus-visible { outline: 3px solid #FFFFFF; outline-offset: 2px; }
+.commande-profondeur.signal { animation: signal-commande .7s ease-out 2; }
+@keyframes signal-commande {
+  0% { box-shadow: 0 0 0 0 rgb(255 77 109 / .85); }
+  100% { box-shadow: 0 0 0 10px rgb(255 77 109 / 0); }
+}
 
-/* Bulles de dialogue */
-.explications { margin-top: .95rem; }
+/* Contenu de l'écran */
+h1, h2 { font-family: var(--titre); font-weight: 400; letter-spacing: .035em; }
+h2 {
+  color: var(--texte);
+  font-size: clamp(1.7rem, 1.35rem + 1.2vw, 2.35rem);
+  line-height: 1.05;
+  text-shadow: 2px 2px 0 color-mix(in srgb, var(--accent) 50%, transparent);
+}
+h3, h4 { font-weight: 700; letter-spacing: -.01em; }
+.section-tete .surtitre {
+  display: inline-block;
+  margin-bottom: .4rem;
+  padding: .1rem .7rem;
+  border: 2px solid var(--encre);
+  background: var(--jaune);
+  color: var(--encre);
+  font-size: 11.5px;
+  letter-spacing: .1em;
+  transform: skewX(-10deg);
+  box-shadow: 2px 2px 0 var(--encre);
+}
+.carte {
+  border: 2px solid var(--contour);
+  border-radius: var(--rayon);
+  background: var(--surface);
+  box-shadow: var(--ombre-dure);
+}
+.prose h3, .bloc-donnees h3, .groupe-tete h3 { color: var(--texte); }
+.prose h4 { color: var(--rouge-texte); }
+.prose thead th, .apercu thead th, .tableau-bord thead th { color: var(--texte-2); }
+.prose + .prose { margin-top: 1.1rem; }
+.prose { scroll-margin-top: 12px; }
+.sommaire a {
+  border: 2px solid var(--contour);
+  border-radius: 9px;
+  background: var(--surface);
+  box-shadow: 0 3px 0 var(--contour);
+  transition: transform .07s ease, box-shadow .07s ease;
+}
+.sommaire a:hover { border-color: var(--contour); background: var(--afficheur); }
+.sommaire a:active { transform: translateY(3px); box-shadow: 0 0 0 var(--contour); }
+.piege, .mesure {
+  background-color: var(--afficheur);
+  color: var(--afficheur-texte);
+}
+.piege-valeur { color: var(--rouge-texte); text-shadow: none; }
+.mesure { border: 2px solid var(--contour); border-radius: 10px; }
+.mesure-bete { border-top: 6px solid var(--texte-2); }
+.mesure-bete[data-verdict="mieux"] { border-top-color: var(--vert); }
+.mesure-bete[data-verdict="moins"] { border-top-color: var(--ambre); }
+.mesure .surtitre, .piege .surtitre { color: var(--texte-2); font-size: 11px; letter-spacing: .1em; }
+.mesure-valeur { letter-spacing: -.04em; }
+.jauge {
+  height: 12px;
+  margin: .25rem 0 .2rem;
+  overflow: hidden;
+  border: 2px solid var(--contour);
+  border-radius: 999px;
+  background: var(--surface);
+}
+.jauge i {
+  display: block;
+  width: 0;
+  height: 100%;
+  background: repeating-linear-gradient(90deg, transparent 0 8px, rgb(20 20 47 / .22) 8px 9px), var(--jauge, var(--turquoise));
+  transition: width .22s ease;
+}
+.jauge-rappel { --jauge: var(--jaune); }
+.jauge-precision { --jauge: var(--accent); }
+.barre-classes { height: 12px; border: 2px solid var(--contour); background: var(--surface); }
+.explications { gap: 1.1rem; margin-top: 1.5rem; }
 .explication,
 .explication-profondeur,
 .explication-bareme {
   position: relative;
-  border: 0;
-  border-radius: 20px 20px 20px 6px;
-  background: linear-gradient(180deg, var(--pastille-haut), var(--pastille-bas));
-  color: var(--encre);
-  box-shadow: 0 .35em .9em rgba(20, 50, 110, .24), 0 0 0 1px rgba(120, 140, 190, .25);
-  transform-origin: 2.6rem 0;
+  padding: 1.3rem 1.2rem 1.1rem;
+  border: 3px solid var(--contour);
+  border-radius: 14px;
+  background: var(--surface);
+  color: var(--texte);
+  transform-origin: 50% 50%;
 }
-.explication::before {
-  content: "";
+.explication .surtitre {
   position: absolute;
-  top: -11px;
-  left: 1.9rem;
-  width: 22px;
-  height: 12px;
-  background: var(--pastille-haut);
-  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+  top: -.8rem;
+  left: .9rem;
+  padding: .08rem .6rem;
+  border: 2px solid var(--encre);
+  border-radius: 6px;
+  color: var(--encre);
+  font-size: 10.5px;
+  letter-spacing: .08em;
 }
-.explication h3, .explication p { color: var(--encre); }
-.explication-profondeur .surtitre { color: var(--encre); }
-.explication-bareme .surtitre { color: #a32222; }
-.panneau.signal { animation: signal-panneau .7s ease-out 2; }
-@keyframes signal-panneau {
-  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--rouge) 75%, transparent); }
-  100% { box-shadow: 0 0 0 14px transparent; }
+.explication-profondeur .surtitre { background: #8DF7DC; }
+.explication-bareme .surtitre { background: #FFB1BF; }
+.explication::after { content: "▼"; position: absolute; right: .7rem; bottom: .3rem; color: var(--rouge); font-size: .62rem; }
+.case { border: 2px solid var(--contour); border-radius: 8px; background: var(--afficheur); color: var(--afficheur-texte); }
+.case-fond { border-radius: 3px; }
+.case-bon .case-fond { background: color-mix(in srgb, var(--vert) 38%, var(--afficheur)); }
+.case-erreur .case-fond { background: color-mix(in srgb, var(--rouge) 36%, var(--afficheur)); }
+.regles { border: 2px solid var(--contour); background: var(--afficheur); color: var(--afficheur-texte); }
+.regles-message { border: 2px solid var(--contour); border-left-width: 6px; }
+.axes select { border: 2px solid var(--contour); border-radius: 8px; background: var(--surface); color: var(--texte); }
+.infobulle { border: 2px solid var(--contour); box-shadow: var(--ombre-dure); }
+.prose td, .apercu td, .ax-texte { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.ax-texte { font-size: 11px; }
+.pied {
+  margin: 0;
+  padding: 18px clamp(16px, 2.6vw, 32px) 22px;
+  border-top: 3px solid var(--contour);
+  background: var(--afficheur);
+  color: var(--texte-2);
 }
-@keyframes jaillir { from { transform: scale(0); } to { transform: scale(1); } }
 
-@media (max-width: 899px) {
-  .plateau { min-height: 0; padding: 5.9rem .6rem .75rem; }
-  .journal-bloc { flex-wrap: wrap; gap: .15rem; }
-  .journal { max-width: 100%; }
-  .centre { position: relative; inset: auto; padding: 0; }
-  .gemme { width: 27em; height: 31em; }
-  .info-jeu { max-width: 100%; }
-  .eventail {
-    position: relative;
-    left: auto;
-    top: auto;
-    display: none;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: .5rem;
-    width: auto;
-    height: auto;
-    margin-top: .65rem;
-  }
-  .eventail.ouvert { display: grid; }
-  .preset,
-  .eventail.ouvert .preset,
-  .eventail.pose .preset {
-    position: relative;
+@media (max-width: 1100px) {
+  .grille-hp { display: none; }
+  .bandeau { grid-template-columns: auto minmax(0, 1fr) auto; }
+  .ecran-cadre { grid-template-columns: minmax(0, 1fr); grid-template-rows: 40px minmax(0, 1fr); }
+  .envols-colonne { order: -1; flex-direction: row; align-items: stretch; padding: 3px 8px; border-left: 0; border-bottom: 3px solid var(--encre); }
+  .envols-titre { display: none; }
+  .etat { grid-template-columns: minmax(150px, .8fr) minmax(0, 1.6fr); }
+  .etat-arbre { display: none; }
+  .pupitre { grid-template-columns: minmax(0, 1fr) 190px; gap: 8px 16px; }
+  .commande-presets { grid-column: 1 / -1; }
+  .presets { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .preset { padding-inline: 3px; font-size: .74rem; }
+  .preset svg { display: none; }
+}
+
+@media (max-height: 820px) and (min-width: 761px) {
+  .boitier { gap: 6px; padding-block: 8px 7px; }
+  .mascotte { width: 62px; height: 62px; }
+  .titre-appareil h1 { font-size: clamp(1.45rem, 1rem + 1.4vw, 2.1rem); }
+  .grille-hp { height: 38px; }
+  .pupitre .aide { display: none; }
+  .journal { min-height: 36px; padding-block: 2px; }
+  .jeton { width: 28px; height: 28px; font-size: .7rem; }
+  .bandeau { padding-block: 3px; }
+}
+
+@media (max-width: 760px) {
+  .boitier {
+    gap: 4px;
     width: 100%;
-    padding-inline: .4em;
-    visibility: visible;
-    transform: scale(var(--s, 1));
-    transition: transform .18s ease;
+    height: 100dvh;
+    margin: 0;
+    padding: 4px;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
   }
-  .eventail.ouvert:not(.pose) .preset {
-    animation: jaillir .45s cubic-bezier(.3, 1.6, .5, 1) both;
-    animation-delay: calc(var(--i) * 45ms);
+  .vis, .reference { display: none; }
+  .bandeau { grid-template-columns: auto minmax(0, 1fr) auto; gap: 8px; padding: 3px 7px; border-width: 2px; border-radius: 10px; }
+  .mascotte { width: 48px; height: 48px; }
+  .titre-appareil .surtitre { display: none; }
+  .titre-appareil h1 { font-size: 1.28rem; text-shadow: 2px 2px 0 var(--encre); }
+  .legende-mascotte { grid-column: 1 / -1; margin-top: 0; font-size: .64rem; }
+  .legende-mascotte span { display: block; }
+  .titre-appareil { display: contents; }
+  .bandeau h1 { grid-column: 2; grid-row: 1; }
+  .bandeau-droite { grid-column: 3; grid-row: 1; }
+  .legende-mascotte { grid-row: 2; }
+  .bouton { min-height: 38px; }
+  .bandeau .bouton { max-width: 104px; padding: .15rem .4rem; border-width: 2px; font-size: .68rem; line-height: 1.1; white-space: normal; box-shadow: 0 3px 0 var(--encre); }
+  .vers-notebook .bouton { width: 100%; }
+  .ecran-cadre { grid-template-rows: 34px minmax(0, 1fr); border-width: 2px; border-radius: 10px; box-shadow: none; }
+  .envols-colonne { padding: 2px 6px; border-bottom-width: 2px; }
+  .envol { font-size: .66rem; }
+  .etat { grid-template-columns: minmax(0, .85fr) minmax(0, 1.5fr); gap: 7px; padding: 2px 6px; border-width: 2px; border-radius: 9px; }
+  .journal-titre { display: none; }
+  .journal { min-height: 34px; padding: 3px; }
+  .jeton { width: 26px; height: 26px; font-size: .66rem; }
+  .etat-messages { font-size: .66rem; line-height: 1.2; }
+  #bilan { font-size: .62rem; }
+  .pupitre { grid-template-columns: minmax(0, 1fr) auto; gap: 3px 10px; padding: 1px 3px calc(2px + env(safe-area-inset-bottom)); }
+  .grave { font-size: 9.5px; letter-spacing: .06em; }
+  .libelle-long { display: none; }
+  .libelle-court { display: inline; }
+  .pupitre .aide { display: none; }
+  .fenetre { width: 40px; height: 30px; font-size: 1rem; }
+  .graduations span:nth-child(even) { visibility: hidden; }
+  .inverseur { min-height: 32px; margin-top: 1px; gap: 4px; font-size: 9.5px; }
+  .inv-corps { width: 50px; height: 26px; }
+  .inv-levier { width: 22px; height: 18px; }
+  .inverseur input:checked ~ .inv-corps .inv-levier { transform: translateX(21px); }
+  .commande-presets > .grave { display: none; }
+  .presets {
+    grid-auto-flow: column;
+    grid-template-columns: none;
+    grid-auto-columns: max-content;
+    margin-top: 0;
+    padding: 2px 2px 5px;
+    overflow-x: auto;
+    scrollbar-width: none;
   }
+  .presets::-webkit-scrollbar { display: none; }
+  .preset { min-height: 34px; padding-inline: 9px; font-size: .78rem; }
+  .explications { margin-top: 1.4rem; }
+  .jauge { grid-column: 1 / -1; }
+  .prose th, .prose td { padding: .32rem .16rem; }
+  .prose thead th { white-space: normal; vertical-align: bottom; font-size: .64rem; line-height: 1.2; }
+  .prose table { font-size: .7rem; }
+}
+
+@media (max-height: 640px) {
+  html, body { height: auto; overflow: auto; }
+  .boitier { height: auto; min-height: calc(100dvh - 30px); grid-template-rows: auto auto auto auto; }
+  .ecran-cadre { overflow: visible; grid-template-rows: none; }
+  .ecran { overflow: visible; }
+  .envols-colonne { position: sticky; top: 8px; align-self: start; height: 56vh; }
+  .pupitre { position: sticky; bottom: 0; z-index: 20; background: var(--coque); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  html { scroll-behavior: auto; }
+  .ecran { scroll-behavior: auto; }
   *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
 }
 </style>
@@ -1047,26 +1173,62 @@ code {
 <body>
 <a class="lien-evitement" href="#contenu">Aller au contenu</a>
 
-<header class="appareil">
-  <div class="conteneur appareil-interieur">
-    <div class="capteurs" aria-hidden="true">
-      <span class="lentille"></span>
-      <span class="pastilles">
-        <span class="pastille pastille-rouge"></span>
-        <span class="pastille pastille-jaune"></span>
-        <span class="pastille pastille-verte"></span>
-      </span>
-    </div>
-    <div class="titre-appareil">
-      <p class="surtitre">Mastère 1 Cybersécurité — OTERIA</p>
-      <h1>Prédire si un Pokémon est légendaire</h1>
-    </div>
+<div class="boitier">
+<span class="vis vis-hg" aria-hidden="true"></span>
+<span class="vis vis-hd" aria-hidden="true"></span>
+<span class="vis vis-bg" aria-hidden="true"></span>
+<span class="vis vis-bd" aria-hidden="true"></span>
+
+<header class="bandeau">
+  <svg class="mascotte" id="mascotte" viewBox="0 0 120 120" role="img" aria-label="Nodo, la mascotte indicatrice" data-humeur="calme">
+    <circle class="m-aura" cx="60" cy="64" r="56"/>
+    <g class="m-corps">
+      <path class="m-trait" d="M60 38V25M60 25 45 15M60 25l15-10"/>
+      <circle class="m-feuille" cx="43" cy="13" r="7"/>
+      <circle class="m-feuille" cx="77" cy="13" r="7"/>
+      <circle class="m-noeud" cx="60" cy="25" r="5"/>
+      <rect class="m-oreille" x="12" y="56" width="14" height="22" rx="6"/>
+      <rect class="m-oreille" x="94" y="56" width="14" height="22" rx="6"/>
+      <path class="m-pied" d="M38 96h17v10a6 6 0 0 1-6 6h-5a6 6 0 0 1-6-6zM65 96h17v10a6 6 0 0 1-6 6h-5a6 6 0 0 1-6-6z"/>
+      <rect class="m-tete" x="22" y="36" width="76" height="64" rx="25"/>
+      <path class="m-ombre" d="M91 58v17a22 22 0 0 1-22 22H45a22 22 0 0 1-16-7h38a24 24 0 0 0 24-24z"/>
+      <rect class="m-visiere" x="32" y="47" width="56" height="35" rx="15"/>
+      <ellipse class="m-joue" cx="33" cy="88" rx="6" ry="3.5"/>
+      <ellipse class="m-joue" cx="87" cy="88" rx="6" ry="3.5"/>
+      <g class="yeux yeux-calme">
+        <ellipse class="m-oeil" cx="48" cy="63" rx="6.5" ry="9.5"/><circle class="m-reflet" cx="50.5" cy="59" r="2.6"/>
+        <ellipse class="m-oeil" cx="72" cy="63" rx="6.5" ry="9.5"/><circle class="m-reflet" cx="74.5" cy="59" r="2.6"/>
+        <path class="m-ligne" d="M55 75q5 4 10 0"/>
+      </g>
+      <g class="yeux yeux-concentre">
+        <path class="m-ligne" d="M40 54l14 4M80 54l-14 4"/>
+        <ellipse class="m-oeil" cx="48" cy="66" rx="6" ry="6.5"/><circle class="m-reflet" cx="50" cy="64" r="2"/>
+        <ellipse class="m-oeil" cx="72" cy="66" rx="6" ry="6.5"/><circle class="m-reflet" cx="74" cy="64" r="2"/>
+        <path class="m-ligne" d="M55 77h10"/>
+      </g>
+      <g class="yeux yeux-vertige">
+        <path class="m-ligne" d="M48 63a2 2 0 0 1 3 2 4.5 4.5 0 0 1-8 0 7 7 0 0 1 11-6 9 9 0 0 1 2 10"/>
+        <path class="m-ligne" d="M72 63a2 2 0 0 1 3 2 4.5 4.5 0 0 1-8 0 7 7 0 0 1 11-6 9 9 0 0 1 2 10"/>
+        <path class="m-ligne" d="M52 77q2.700-3 5.300 0t5.300 0 5.300 0"/>
+      </g>
+    </g>
+  </svg>
+  <div class="titre-appareil">
+    <p class="surtitre">Mastère 1 Cybersécurité — OTERIA</p>
+    <h1>Prédire si un Pokémon est légendaire</h1>
+    <p class="legende-mascotte"><strong id="mascotte-valeurs">—</strong> <span>Aura de Nodo : écart d'accuracy entraînement / test (vert = proche, rouge = surapprentissage). Rebond : rappel.</span></p>
+  </div>
+  <div class="grille-hp" aria-hidden="true"></div>
+  <div class="bandeau-droite">
+    <span class="reference" aria-hidden="true">NODO-01</span>
     <a class="bouton" href="notebook/">Voir le notebook complet <span aria-hidden="true">→</span></a>
   </div>
 </header>
 
-<main id="contenu">
-<div class="conteneur">
+<div class="ecran-cadre">
+<div class="ecran" id="ecran" tabindex="0" role="region" aria-label="Écran de la console">
+<main id="contenu" tabindex="-1">
+<div class="lecture">
   <div id="message" class="message" role="status" hidden></div>
 
   <section class="section" aria-labelledby="titre-probleme">
@@ -1117,15 +1279,7 @@ code {
     </div>
   </section>
 
-</div>
-
-<!-- Zone interactive : console de jeu -->
-<div class="scene">
-  <div class="scene-fond" aria-hidden="true"></div>
-  <div class="scene-grain" aria-hidden="true"></div>
-  <div class="console">
-  <div class="ecran">
-  <section aria-labelledby="titre-reglages">
+  <section class="section" aria-labelledby="titre-reglages">
     <div class="section-tete">
       <p class="surtitre">Entraîner le modèle</p>
       <h2 id="titre-reglages">Deux réglages pour piloter l'arbre</h2>
@@ -1135,60 +1289,6 @@ code {
       <p>Ces deux réglages sont des <strong>hyperparamètres</strong> : je les choisis moi-même, par opposition aux seuils de l'arbre, que le modèle apprend seul à partir des données.</p>
     </div>
   </section>
-
-  <div class="plateau" id="plateau">
-    <div class="decor" aria-hidden="true">
-      <svg class="couche cumulus cumulus-c" data-profondeur="1.2" viewBox="0 0 120 50"><path d="M20 46a17 17 0 0 1 2-34 24 24 0 0 1 45-7 20 20 0 0 1 33 15 13 13 0 0 1-2 26z"/></svg>
-      <svg class="couche cumulus cumulus-a" data-profondeur="1.6" viewBox="0 0 120 50"><path d="M20 46a17 17 0 0 1 2-34 24 24 0 0 1 45-7 20 20 0 0 1 33 15 13 13 0 0 1-2 26z"/></svg>
-      <svg class="couche cumulus cumulus-b" data-profondeur="2" viewBox="0 0 120 50"><path d="M20 46a17 17 0 0 1 2-34 24 24 0 0 1 45-7 20 20 0 0 1 33 15 13 13 0 0 1-2 26z"/></svg>
-      <svg class="couche colline colline-loin" data-profondeur="3" viewBox="0 0 1000 200" preserveAspectRatio="none"><path d="M0 118C150 58 300 62 455 112S760 172 1000 86V200H0Z"/></svg>
-      <svg class="couche colline colline-proche" data-profondeur="5" viewBox="0 0 1000 200" preserveAspectRatio="none"><path d="M0 92C190 158 340 150 520 96S830 42 1000 118V200H0Z"/></svg>
-    </div>
-    <div class="envols" id="envols" aria-hidden="true"></div>
-    <div class="journal-bloc">
-      <span class="journal-titre">Journal · anneau = rappel · point = pondéré</span>
-      <ol class="journal" id="journal" aria-label="Réglages déjà essayés"></ol>
-    </div>
-    <div class="centre">
-      <svg class="gemme" id="gemme" viewBox="-100 -112 200 224" role="img" aria-label="Indicateur de surapprentissage"></svg>
-      <p class="info-jeu"><strong id="gemme-valeurs">—</strong><br>Couleur : écart d'accuracy entraînement / test (vert = proche, rouge = surapprentissage). Vitesse : rappel.</p>
-      <button type="button" class="pastille-jeu bouton-eventail" id="ouvrir-eventail" aria-expanded="false" aria-controls="eventail">
-        <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.2"/><path d="m10.6 5.4-1.5 3.7-3.7 1.5 1.5-3.7z"/></svg>
-        <span>Visite guidée</span>
-      </button>
-      <p class="info-jeu phrase-jeu" id="phrase-preset">&nbsp;</p>
-      <p class="info-jeu" id="bilan">&nbsp;</p>
-      <div class="eventail" id="eventail">
-        <button type="button" class="pastille-jeu preset" data-preset="aveugle" style="--i:0;--x:-36;--y:-12"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 8c3 3.6 9 3.6 12 0M4 10.8 3 12.6M8 11.9v2M12 10.8l1 1.8"/></svg><span>Aveugle</span></button>
-        <button type="button" class="pastille-jeu preset" data-preset="prudent" style="--i:1;--x:-39;--y:0"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.8 13 3.6v4.1c0 3-2 5.2-5 6.5-3-1.3-5-3.5-5-6.5V3.6z"/></svg><span>Prudent</span></button>
-        <button type="button" class="pastille-jeu preset" data-preset="equilibre" style="--i:2;--x:-36;--y:12"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2v12M4.5 14h7M3 4.5h10M3 4.5 1.4 9h3.2zM13 4.5 11.4 9h3.2z"/></svg><span>Équilibré</span></button>
-        <button type="button" class="pastille-jeu preset" data-preset="chasseur" style="--i:3;--x:36;--y:-12"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="5.6"/><circle cx="8" cy="8" r="2"/><path d="M8 .8v3M8 12.2v3M.8 8h3M12.2 8h3"/></svg><span>Chasseur</span></button>
-        <button type="button" class="pastille-jeu preset" data-preset="coeur" style="--i:4;--x:39;--y:0"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 13.6S2 10 2 5.9A3.2 3.2 0 0 1 8 4.2a3.2 3.2 0 0 1 6 1.7c0 4.1-6 7.7-6 7.7z"/></svg><span>Par cœur</span></button>
-        <button type="button" class="pastille-jeu preset" data-preset="libre" style="--i:5;--x:36;--y:12"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4.5h7M12 4.5h2M2 11.5h2M7 11.5h7"/><circle cx="10.5" cy="4.5" r="1.6"/><circle cx="5.5" cy="11.5" r="1.6"/></svg><span>Réglage libre…</span></button>
-      </div>
-    </div>
-  </div>
-
-  <div class="panneau" role="group" aria-label="Réglages du modèle">
-    <div class="reglage">
-      <div class="reglage-tete">
-        <label for="profondeur">Profondeur max de l'arbre</label>
-        <output class="valeur-reglage nombre" id="valeur-profondeur" for="profondeur">4</output>
-      </div>
-      <input type="range" id="profondeur" min="1" max="15" step="1" value="4" aria-label="Profondeur maximale de l'arbre, de 1 à 15">
-      <p class="aide">Le nombre maximal de questions posées en cascade.</p>
-    </div>
-    <div class="reglage">
-      <label class="interrupteur">
-        <input type="checkbox" role="switch" id="pondere" checked aria-label="Donner plus de poids aux légendaires">
-        <span class="piste" aria-hidden="true"></span>
-        <span>Donner plus de poids aux légendaires</span>
-      </label>
-      <p class="aide">Rend les erreurs sur les légendaires plus coûteuses.</p>
-    </div>
-    <p class="etat-arbre" id="etat-arbre">&nbsp;<br>&nbsp;</p>
-  </div>
-  <p class="sr" id="annonce" aria-live="polite"></p>
 
   <div class="explications">
     <article class="carte explication explication-profondeur">
@@ -1214,16 +1314,19 @@ code {
       <article class="carte mesure">
         <p class="surtitre">Accuracy test</p>
         <p class="mesure-valeur nombre" id="m-acc">—</p>
+        <div class="jauge" aria-hidden="true"><i id="j-acc"></i></div>
         <p class="mesure-aide" id="m-acc-aide">&nbsp;</p>
       </article>
       <article class="carte mesure">
         <p class="surtitre">Rappel test</p>
         <p class="mesure-valeur nombre" id="m-rec">—</p>
+        <div class="jauge jauge-rappel" aria-hidden="true"><i id="j-rec"></i></div>
         <p class="mesure-aide" id="m-rec-aide">&nbsp;</p>
       </article>
       <article class="carte mesure">
         <p class="surtitre">Précision test</p>
         <p class="mesure-valeur nombre" id="m-prec">—</p>
+        <div class="jauge jauge-precision" aria-hidden="true"><i id="j-prec"></i></div>
         <p class="mesure-aide" id="m-prec-aide">&nbsp;</p>
       </article>
       <article class="carte mesure mesure-bete" id="carte-bete">
@@ -1351,11 +1454,6 @@ code {
     </div>
   </section>
 
-  </div>
-  </div>
-</div>
-
-<div class="conteneur">
   <section class="section" aria-labelledby="titre-experiences">
     <div class="section-tete">
       <p class="surtitre">Mes expériences</p>
@@ -1785,7 +1883,7 @@ ces deux réglages et leur interprétation.</p>
 </main>
 
 <footer class="pied">
-  <div class="conteneur pied-grille">
+  <div class="lecture pied-grille">
     <div>
       <p>MoganSen — Mastère 1 Cybersécurité, OTERIA.</p>
       <p>Cours « Fondamentaux de l'IA et bonnes pratiques », séance 2, novembre 2026.</p>
@@ -1798,6 +1896,61 @@ ces deux réglages et leur interprétation.</p>
     </ul>
   </div>
 </footer>
+</div>
+<aside class="envols-colonne" aria-hidden="true">
+  <span class="envols-titre">Pokémon en mouvement</span>
+  <div class="envols" id="envols"></div>
+</aside>
+</div>
+
+<div class="etat">
+  <div class="journal-bloc">
+    <span class="journal-titre">Journal · anneau = rappel · point = pondéré</span>
+    <ol class="journal" id="journal" aria-label="Réglages déjà essayés"></ol>
+  </div>
+  <div class="etat-messages">
+    <p class="phrase-jeu" id="phrase-preset">&nbsp;</p>
+    <p id="bilan">&nbsp;</p>
+  </div>
+  <p class="etat-arbre" id="etat-arbre">&nbsp;<br>&nbsp;</p>
+</div>
+
+<div class="pupitre" role="group" aria-label="Réglages du modèle">
+  <div class="commande commande-profondeur">
+    <label class="grave" for="profondeur">Profondeur max de l'arbre</label>
+    <div class="ligne-curseur">
+      <div class="rainure">
+        <input type="range" id="profondeur" min="1" max="15" step="1" value="4" aria-label="Profondeur maximale de l'arbre, de 1 à 15">
+        <div class="graduations" aria-hidden="true"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span><span>11</span><span>12</span><span>13</span><span>14</span><span>15</span></div>
+      </div>
+      <output class="fenetre nombre" id="valeur-profondeur" for="profondeur">4</output>
+    </div>
+    <p class="aide">Le nombre maximal de questions posées en cascade.</p>
+  </div>
+  <div class="commande commande-bascule">
+    <span class="grave"><span class="libelle-long">Donner plus de poids aux légendaires</span><span class="libelle-court">Pondération</span></span>
+    <label class="inverseur">
+      <input type="checkbox" role="switch" id="pondere" checked aria-label="Donner plus de poids aux légendaires">
+      <span class="inv-off" aria-hidden="true">OFF</span>
+      <span class="inv-corps" aria-hidden="true"><span class="inv-levier"></span></span>
+      <span class="inv-on" aria-hidden="true">ON</span>
+    </label>
+    <p class="aide">Rend les erreurs sur les légendaires plus coûteuses.</p>
+  </div>
+  <div class="commande commande-presets">
+    <span class="grave">Visite guidée</span>
+    <div class="presets">
+      <button type="button" class="preset" data-preset="aveugle"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 8c3 3.600 9 3.600 12 0M4 10.800 3 12.600M8 11.900v2M12 10.800l1 1.800"/></svg><span>Aveugle</span></button>
+      <button type="button" class="preset" data-preset="prudent"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.800 13 3.600v4.100c0 3-2 5.200-5 6.500-3-1.300-5-3.500-5-6.500V3.600z"/></svg><span>Prudent</span></button>
+      <button type="button" class="preset" data-preset="equilibre"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2v12M4.500 14h7M3 4.500h10M3 4.500 1.400 9h3.200zM13 4.500 11.400 9h3.200z"/></svg><span>Équilibré</span></button>
+      <button type="button" class="preset" data-preset="chasseur"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="5.600"/><circle cx="8" cy="8" r="2"/><path d="M8 .8v3M8 12.200v3M.8 8h3M12.200 8h3"/></svg><span>Chasseur</span></button>
+      <button type="button" class="preset" data-preset="coeur"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 13.600S2 10 2 5.900A3.200 3.200 0 0 1 8 4.200a3.200 3.200 0 0 1 6 1.700c0 4.100-6 7.700-6 7.700z"/></svg><span>Par cœur</span></button>
+      <button type="button" class="preset" data-preset="libre"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4.500h7M12 4.500h2M2 11.500h2M7 11.500h7"/><circle cx="10.500" cy="4.500" r="1.600"/><circle cx="5.500" cy="11.500" r="1.600"/></svg><span>Réglage libre…</span></button>
+    </div>
+  </div>
+</div>
+<p class="sr" id="annonce" aria-live="polite"></p>
+</div>
 
 <script>
 "use strict";
@@ -1966,6 +2119,7 @@ function actualiser() {
   const limite = meta.profondeur_naturelle[etat.pondere ? "1" : "0"];
 
   $("valeur-profondeur").textContent = etat.profondeur;
+  $("profondeur").style.setProperty("--progres", String((etat.profondeur - 1) / (meta.profondeur_max - 1)));
   $("profondeur").setAttribute("aria-valuetext", `Profondeur ${etat.profondeur}`);
   const retenu = etat.profondeur === meta.reglage_retenu.profondeur && etat.pondere === meta.reglage_retenu.pondere;
   $("etat-arbre").innerHTML = `Arbre obtenu : <strong class="nombre">${c.profondeur_reelle}</strong> niveau${c.profondeur_reelle > 1 ? "x" : ""}, <strong class="nombre">${c.nb_feuilles}</strong> feuilles<br>`
@@ -1982,6 +2136,7 @@ function actualiser() {
   poser("m-acc", pct(c.acc_test));
   poser("m-rec", pct(c.rec_test));
   poser("m-prec", pct(c.prec_test));
+  for (const m of ["acc", "rec", "prec"]) $(`j-${m}`).style.width = `${c[`${m}_test`] * 100}%`;
   poser("m-acc-aide", `${tn + tp} bonnes réponses sur ${tn + fp + fn + tp}`);
   poser("m-rec-aide", `${pluriel(tp, "légendaire")} sur ${tp + fn} ${tp > 1 ? "trouvés" : "trouvé"}`);
   poser("m-prec-aide", tp + fp === 0 ? "Aucune alerte levée" : `${tp} ${tp > 1 ? "alertes justes" : "alerte juste"} sur ${tp + fp}`);
@@ -2321,23 +2476,18 @@ function brancherGraphiques() {
   }).observe($("courbe"));
 }
 
-/* ---------- Console de jeu : gemme, éventail, envols, journal ---------- */
-const pointeurFin = matchMedia("(hover: hover) and (pointer: fine)");
-const SOMMETS = [[0, 98, 0], [0, -98, 0], ...[0, 1, 2, 3].map((k) => {
-  const a = Math.PI / 4 + k * Math.PI / 2;
-  return [78 * Math.cos(a), 0, 78 * Math.sin(a)];
-})];
-const FACES = [0, 1, 2, 3].flatMap((k) => [[0, 2 + k, 2 + (k + 1) % 4], [1, 2 + (k + 1) % 4, 2 + k]]);
-const VERT = [46, 139, 87], AMBRE = [232, 163, 23], ROUGE = [198, 47, 47];
+/* ---------- La console : Nodo, boutons, envols, journal ---------- */
+const VERT = [46, 139, 87], AMBRE = [232, 163, 23], ROUGE = [217, 43, 80];
 const PRESETS = { aveugle: [1, false], prudent: [3, false], equilibre: [4, true], chasseur: [2, true], coeur: [15, false] };
+const HUMEURS = { calme: "Nodo est calme", concentre: "Nodo se concentre", vertige: "Nodo a le vertige" };
 const jeu = {
-  angle: .6, vitesse: .6, vitesseCible: .6, couleur: [...VERT], couleurCible: [...VERT],
-  polygones: [], couches: [], px: 0, py: 0, cx: 0, cy: 0,
+  phase: 0, vitesse: 3, vitesseCible: 3, couleur: [...VERT], couleurCible: [...VERT],
   visible: true, raf: 0, dernier: 0, precedent: null, journal: [], minuteurs: [],
-  actifs: 0, ecartMax: 1, titres: ["", ""], bilan: "", minuteurPose: 0,
+  actifs: 0, ecartMax: 1, titres: ["", ""], bilan: "",
 };
 const cleCourante = () => `${etat.profondeur}_${etat.pondere ? 1 : 0}`;
 const melanger = (a, b, t) => a.map((v, i) => v + (b[i] - v) * t);
+const cadenceRappel = (rappel) => 2 * Math.PI * (.2 + rappel * 1.3);
 
 function couleurEcart(ecart) {
   const milieu = jeu.ecartMax / 2;
@@ -2345,33 +2495,15 @@ function couleurEcart(ecart) {
   return melanger(AMBRE, ROUGE, Math.min(1, (ecart - milieu) / milieu));
 }
 
-function dessinerGemme() {
-  const a = jeu.angle, cA = Math.cos(a), sA = Math.sin(a), cT = Math.cos(.3), sT = Math.sin(.3);
-  const pts = SOMMETS.map(([x, y, z]) => {
-    const x1 = x * cA + z * sA, z1 = -x * sA + z * cA;
-    const y1 = y * cT - z1 * sT, z2 = y * sT + z1 * cT;
-    const k = 340 / (340 - z2);
-    return { x: x1, y: y1, z: z2, ex: x1 * k, ey: -y1 * k };
-  });
-  const ordre = FACES.map((f) => {
-    const [A, B, C] = f.map((i) => pts[i]);
-    let nx = (B.y - A.y) * (C.z - A.z) - (B.z - A.z) * (C.y - A.y);
-    let ny = (B.z - A.z) * (C.x - A.x) - (B.x - A.x) * (C.z - A.z);
-    let nz = (B.x - A.x) * (C.y - A.y) - (B.y - A.y) * (C.x - A.x);
-    const m = Math.hypot(nx, ny, nz) || 1;
-    const gx = (A.x + B.x + C.x) / 3, gy = (A.y + B.y + C.y) / 3, gz = (A.z + B.z + C.z) / 3;
-    const sens = (nx * gx + ny * gy + nz * gz) < 0 ? -1 : 1;
-    nx *= sens / m; ny *= sens / m; nz *= sens / m;
-    return { f, z: gz, l: Math.max(0, nx * -.45 + ny * .62 + nz * .64) };
-  }).sort((p, q) => p.z - q.z);
-  ordre.forEach(({ f, l }, j) => {
-    const ombre = .5 + .62 * l, reflet = l ** 8 * .42;
-    const rgb = jeu.couleur.map((v) => Math.min(255, Math.round(v * ombre + 255 * reflet))).join(" ");
-    const poly = jeu.polygones[j];
-    poly.setAttribute("points", f.map((i) => `${pts[i].ex.toFixed(1)},${pts[i].ey.toFixed(1)}`).join(" "));
-    poly.style.fill = `rgb(${rgb})`;
-    poly.style.stroke = `rgb(${rgb})`;
-  });
+function humeurEcart(ecart) {
+  if (ecart <= jeu.ecartMax / 3) return "calme";
+  return ecart <= jeu.ecartMax * 2 / 3 ? "concentre" : "vertige";
+}
+
+function peindreMascotte(battement) {
+  const nodo = $("mascotte");
+  nodo.style.setProperty("--halo-rgb", jeu.couleur.map(Math.round).join(" "));
+  nodo.style.setProperty("--pulse", battement.toFixed(3));
 }
 
 function boucleJeu(t) {
@@ -2380,17 +2512,9 @@ function boucleJeu(t) {
   const dt = Math.min(.05, (t - (jeu.dernier || t)) / 1000);
   jeu.dernier = t;
   jeu.vitesse += (jeu.vitesseCible - jeu.vitesse) * .06;
-  jeu.angle += jeu.vitesse * dt;
+  jeu.phase += jeu.vitesse * dt;
   jeu.couleur = melanger(jeu.couleur, jeu.couleurCible, .08);
-  dessinerGemme();
-  if (pointeurFin.matches) {
-    jeu.px += (jeu.cx - jeu.px) * .05;
-    jeu.py += (jeu.cy - jeu.py) * .05;
-    for (const couche of jeu.couches) {
-      const d = Number(couche.dataset.profondeur);
-      couche.style.transform = `translate3d(${(jeu.px * -.5 * d).toFixed(3)}em, ${(jeu.py * -.3 * d).toFixed(3)}em, 0)`;
-    }
-  }
+  peindreMascotte((1 + Math.sin(jeu.phase)) / 2);
   jeu.raf = requestAnimationFrame(boucleJeu);
 }
 
@@ -2398,13 +2522,6 @@ function relancerBoucle() {
   if (jeu.raf || !jeu.visible || document.hidden || mouvementReduit.matches) return;
   jeu.dernier = 0;
   jeu.raf = requestAnimationFrame(boucleJeu);
-}
-
-function reglerUnite() {
-  const plateau = $("plateau");
-  const u = Math.max(4.8, plateau.clientWidth / 100);
-  plateau.style.fontSize = `${u}px`;
-  plateau.style.setProperty("--u", `${u}px`);
 }
 
 function presetCourant() {
@@ -2416,7 +2533,7 @@ function presetCourant() {
 
 function phrasePreset(cle) {
   if (cle === "libre") return "Prends le curseur et l'interrupteur pour choisir toi-même.";
-  if (!cle) return "Réglage personnalisé : compare-le aux pastilles de la visite guidée.";
+  if (!cle) return "Réglage personnalisé : compare-le aux boutons de la visite guidée.";
   const [p, q] = PRESETS[cle];
   const c = D.combinaisons[`${p}_${q ? 1 : 0}`];
   const [, fp, fn, tp] = c.matrice;
@@ -2431,29 +2548,27 @@ function phrasePreset(cle) {
 
 function envoler(nom, type) {
   const zone = $("envols");
-  if (jeu.actifs >= 26 || !zone.clientWidth) return;
-  const plateau = $("plateau"), legende = plateau.querySelector(".info-jeu");
-  const H = Math.max(120, legende.getBoundingClientRect().top - plateau.getBoundingClientRect().top - 4);
-  zone.style.height = `${H}px`;
-  const W = zone.clientWidth, large = W >= 860, haut = large ? 58 : 98, bas = H - 12;
+  const W = zone.clientWidth, H = zone.clientHeight;
+  if (jeu.actifs >= 26 || !W || !H) return;
+  const colonne = H > 120;
+  const haut = Math.min(24, H * .32), bas = H - haut;
   const hasard = (a, b) => a + Math.random() * (b - a);
   const el = document.createElement("span");
   el.className = `envol envol-${type}`;
   el.textContent = nomLisible(nom);
   let x, y, dy;
-  if (type === "gagne") { x = hasard(.34, .66) * W; y = bas; dy = haut - bas; }
-  else if (type === "perdu") { x = hasard(.34, .66) * W; y = haut; dy = bas - haut; }
+  if (type === "gagne") { x = hasard(colonne ? .42 : .25, colonne ? .58 : .75) * W; y = bas; dy = haut - bas; }
+  else if (type === "perdu") { x = hasard(colonne ? .42 : .25, colonne ? .58 : .75) * W; y = haut; dy = bas - haut; }
   else {
-    const gauche = Math.random() < .5;
-    x = (gauche ? hasard(large ? .29 : .17, large ? .37 : .3) : hasard(large ? .63 : .7, large ? .71 : .83)) * W;
-    y = hasard(haut + 16, bas - 8);
-    dy = -16;
+    x = colonne ? hasard(.44, .56) * W : (Math.random() < .5 ? hasard(.12, .28) : hasard(.72, .88)) * W;
+    y = hasard(haut, bas);
+    dy = colonne ? -14 : -2;
   }
   el.style.left = `${x}px`;
   el.style.top = `${y}px`;
   zone.append(el);
   jeu.actifs++;
-  const derive = hasard(-46, 46), rotation = hasard(-14, 14);
+  const derive = colonne ? hasard(-10, 10) : hasard(-24, 24), rotation = colonne ? hasard(-6, 6) : hasard(-4, 4);
   const position = (t, r) => `translate(calc(-50% + ${(derive * t).toFixed(1)}px), calc(-50% + ${(dy * t).toFixed(1)}px)) rotate(${(rotation * r).toFixed(1)}deg)`;
   const vol = el.animate([
     { transform: `${position(0, 0)} scale(.6)`, opacity: 0 },
@@ -2491,7 +2606,7 @@ function comparerReglages(avant, c) {
 
 function bulleSurgit(el) {
   if (mouvementReduit.matches || !el.animate) return;
-  el.animate([{ transform: "scale(0)" }, { transform: "scale(1)" }], { duration: 450, easing: "cubic-bezier(.3, 1.6, .5, 1)" });
+  el.animate([{ transform: "scale(.94)" }, { transform: "scale(1)" }], { duration: 300, easing: "cubic-bezier(.3, 1.6, .5, 1)" });
 }
 
 function marquerJournal() {
@@ -2517,7 +2632,7 @@ function dessinerJournal() {
     const svg = svgEl("svg", { viewBox: "0 0 36 36", "aria-hidden": "true" }, b);
     svgEl("circle", { cx: 18, cy: 18, r: 15, class: "jeton-fond" }, svg);
     const anneau = svgEl("circle", { cx: 18, cy: 18, r: 15, class: "jeton-anneau", pathLength: 100, "stroke-dasharray": `${(c.rec_test * 100).toFixed(1)} 100`, transform: "rotate(-90 18 18)" }, svg);
-    anneau.style.stroke = `color-mix(in srgb, #2E8B57 ${Math.round(c.rec_test * 100)}%, #E8A317)`;
+    anneau.style.stroke = `color-mix(in srgb, #0F8F7F ${Math.round(c.rec_test * 100)}%, #E08A00)`;
     const numero = document.createElement("span");
     numero.textContent = c.profondeur;
     b.append(numero);
@@ -2551,14 +2666,16 @@ function appliquerReglage(profondeur, pondere, noter = true) {
 
 function majConsole(c) {
   const ecart = ecartPoints(c.acc_train, c.acc_test);
+  const humeur = humeurEcart(Math.abs(ecart));
   jeu.couleurCible = couleurEcart(Math.abs(ecart));
-  jeu.vitesseCible = .18 + c.rec_test * 2.4;
-  const texte = `Écart ${formatPoints.format(ecart)} pt${Math.abs(ecart) >= 2 ? "s" : ""} · Rappel ${pct(c.rec_test)}`;
-  $("gemme-valeurs").textContent = texte;
-  $("gemme").setAttribute("aria-label", `Indicateur de surapprentissage. ${texte}.`);
+  jeu.vitesseCible = cadenceRappel(c.rec_test);
+  const texte = `Écart ${formatPoints.format(ecart)} pt${Math.abs(ecart) >= 2 ? "s" : ""} · Rappel ${pct(c.rec_test)} · ${HUMEURS[humeur]}`;
+  $("mascotte-valeurs").textContent = texte;
+  $("mascotte").dataset.humeur = humeur;
+  $("mascotte").setAttribute("aria-label", `Nodo, la mascotte indicatrice. ${texte}.`);
   if (mouvementReduit.matches) {
     jeu.couleur = [...jeu.couleurCible];
-    dessinerGemme();
+    peindreMascotte(.6);
   }
   relancerBoucle();
 
@@ -2574,32 +2691,18 @@ function majConsole(c) {
   $("phrase-preset").textContent = phrasePreset(courant);
 
   if (jeu.precedent && jeu.precedent !== c) comparerReglages(jeu.precedent, c);
-  else if (!jeu.precedent) $("bilan").textContent = "Change un réglage : les Pokémon gagnés et perdus s'envolent ici.";
+  else if (!jeu.precedent) $("bilan").textContent = "Change un réglage : les Pokémon gagnés et perdus s'envolent à côté de l'écran.";
   jeu.precedent = c;
   marquerJournal();
 }
 
-function basculerEventail(ouvrir) {
-  const eventail = $("eventail");
-  eventail.classList.remove("pose");
-  eventail.classList.toggle("ouvert", ouvrir);
-  $("ouvrir-eventail").setAttribute("aria-expanded", String(ouvrir));
-  clearTimeout(jeu.minuteurPose);
-  if (ouvrir) jeu.minuteurPose = setTimeout(() => eventail.classList.add("pose"), 820);
-}
-
 function brancherConsole() {
-  const gemme = $("gemme");
-  jeu.polygones = FACES.map(() => svgEl("polygon", { class: "facette" }, gemme));
-  jeu.couches = [...document.querySelectorAll(".couche")];
   jeu.ecartMax = Math.max(...Object.values(D.combinaisons).map((c) => Math.abs(ecartPoints(c.acc_train, c.acc_test))));
   const c = combinaisonCourante();
   jeu.couleur = couleurEcart(Math.abs(ecartPoints(c.acc_train, c.acc_test)));
   jeu.couleurCible = [...jeu.couleur];
-  jeu.vitesse = jeu.vitesseCible = .18 + c.rec_test * 2.4;
-  dessinerGemme();
-  reglerUnite();
-  new ResizeObserver(reglerUnite).observe($("plateau"));
+  jeu.vitesse = jeu.vitesseCible = cadenceRappel(c.rec_test);
+  peindreMascotte(.6);
 
   for (const bouton of document.querySelectorAll(".preset")) {
     const cle = bouton.dataset.preset;
@@ -2611,13 +2714,13 @@ function brancherConsole() {
     bouton.addEventListener("blur", rendre);
     bouton.addEventListener("click", () => {
       bouton.classList.add("creux");
-      setTimeout(() => bouton.classList.remove("creux"), 350);
+      setTimeout(() => bouton.classList.remove("creux"), 180);
       if (cle === "libre") {
-        const panneau = document.querySelector(".panneau");
-        panneau.classList.remove("signal");
-        void panneau.offsetWidth;
-        panneau.classList.add("signal");
-        $("profondeur").focus({ preventScroll: false });
+        const commande = document.querySelector(".commande-profondeur");
+        commande.classList.remove("signal");
+        void commande.offsetWidth;
+        commande.classList.add("signal");
+        $("profondeur").focus();
         return;
       }
       appliquerReglage(PRESETS[cle][0], PRESETS[cle][1]);
@@ -2625,35 +2728,20 @@ function brancherConsole() {
     });
   }
 
-  const ouvrir = $("ouvrir-eventail");
-  ouvrir.addEventListener("click", () => basculerEventail(ouvrir.getAttribute("aria-expanded") !== "true"));
-  $("plateau").addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && ouvrir.getAttribute("aria-expanded") === "true") {
-      basculerEventail(false);
-      ouvrir.focus();
-    }
-  });
-  window.addEventListener("pointermove", (e) => {
-    if (e.pointerType !== "mouse") return;
-    jeu.cx = e.clientX / innerWidth - .5;
-    jeu.cy = e.clientY / innerHeight - .5;
-  }, { passive: true });
   new IntersectionObserver(([entree]) => {
     jeu.visible = entree.isIntersecting;
     relancerBoucle();
-  }).observe($("plateau"));
+  }).observe($("mascotte"));
   document.addEventListener("visibilitychange", relancerBoucle);
   mouvementReduit.addEventListener("change", () => {
     if (mouvementReduit.matches) {
-      for (const couche of jeu.couches) couche.style.transform = "";
       jeu.couleur = [...jeu.couleurCible];
-      dessinerGemme();
+      peindreMascotte(.6);
     } else {
       relancerBoucle();
     }
   });
   relancerBoucle();
-  requestAnimationFrame(() => basculerEventail(true));
 }
 
 function brancherControles() {
