@@ -67,6 +67,22 @@
   --mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
   --rayon: 18px;
   --duree: 160ms;
+  /* Mise en page : deux largeurs centrées, une seule échelle d'espacement */
+  --col-texte: 760px;
+  --col-large: 1140px;
+  --e1: .25rem;
+  --e2: .5rem;
+  --e3: .75rem;
+  --e4: 1rem;
+  --e5: 1.5rem;
+  --e6: 2rem;
+  --e7: 3rem;
+  --e8: 4.5rem;
+  /* La carte : marge autour, épaisseur du cadre crème, rayon extérieur */
+  --marge: clamp(14px, 2.2vh, 30px);
+  --cadre: clamp(10px, 1.2vw, 18px);
+  --rayon-carte: clamp(18px, 2vw, 28px);
+  --medaillon: clamp(56px, 9vh, 92px);
   color-scheme: light dark;
 }
 @media (prefers-color-scheme: dark) {
@@ -140,7 +156,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .lien-evitement:focus { top: 8px; }
 
 /* ---------- Sections ---------- */
-.section + .section { margin-top: clamp(2.25rem, 5vw, 3.5rem); }
+.section + .section { margin-top: var(--e8); }
 .section-tete { margin-bottom: 1rem; }
 .carte {
   background: var(--surface);
@@ -231,7 +247,6 @@ div.intro { display: grid; gap: .7rem; }
 .explication-bareme .surtitre { color: var(--rouge); }
 .explication h3 { margin: .25rem 0 .45rem; font-size: 1.05rem; font-weight: 750; }
 .explication p:last-child { font-size: .93rem; line-height: 1.55; }
-.explications + .section { margin-top: clamp(2.25rem, 5vw, 3.5rem); }
 
 /* ---------- Mesures ---------- */
 .mesures {
@@ -571,6 +586,7 @@ code {
 
 /* ---------- L'appareil : ciel, pastilles crème, ombres douces ---------- */
 html { background: var(--ciel); }
+/* La page ne défile pas : seule la fenêtre de la carte défile. */
 html, body { height: 100%; overflow: hidden; }
 body { font-weight: 600; }
 strong { font-weight: 800; }
@@ -597,21 +613,40 @@ body::after {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
   pointer-events: none;
 }
-.lecture { width: min(100%, 1060px); margin-inline: auto; }
+.lecture { width: min(100%, var(--col-large)); margin-inline: auto; }
+.lecture p { max-width: 70ch; }
+.lecture .systeme p { max-width: none; }
+/* La carte : hauteur fixe, centrée, le fond reste visible tout autour (--marge).
+   Trois rangées : bandeau, fenêtre qui défile, commandes. */
 .boitier {
   position: relative;
   isolation: isolate;
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto auto;
-  gap: 9px;
-  width: min(100% - 32px, 1380px);
-  height: calc(100dvh - 32px);
-  margin: 16px auto 0;
-  padding: 12px 16px 10px;
-  border-radius: 28px;
-  background: linear-gradient(180deg, var(--coque-haut), var(--coque-bas));
+  grid-template-rows: auto minmax(0, 1fr) auto auto auto;
+  gap: var(--e2);
+  width: min(100% - 2 * var(--marge), 1380px);
+  height: calc(100vh - 2 * var(--marge));
+  height: calc(100dvh - 2 * var(--marge));
+  margin: var(--marge) auto;
+  padding: var(--cadre);
+  border-radius: var(--rayon-carte);
+  background: linear-gradient(180deg, var(--pastille-1), var(--pastille-2));
   color: var(--coque-texte);
-  box-shadow: 0 30px 80px rgba(10, 40, 80, .35), 0 0 0 1px var(--filet);
+  box-shadow:
+    0 .12em 0 rgba(255, 255, 255, .9) inset,
+    0 -.14em .25em rgba(160, 130, 100, .22) inset,
+    0 30px 80px rgba(10, 40, 80, .4),
+    0 0 0 1px var(--filet);
+}
+/* Le liseré : trait fin entre le bord crème et le contenu, comme sur une carte. */
+.boitier::after {
+  content: "";
+  position: absolute;
+  inset: calc(var(--cadre) * .45);
+  z-index: 1;
+  border-radius: calc(var(--rayon-carte) - var(--cadre) * .45);
+  box-shadow: 0 0 0 1.5px rgba(31, 63, 143, .22);
+  pointer-events: none;
 }
 .boitier::before {
   content: "";
@@ -643,17 +678,19 @@ body::after {
   background: rgba(31, 63, 143, .5);
   transform: rotate(35deg);
 }
-.vis-hg { left: 5px; top: 5px; }
-.vis-hd { right: 5px; top: 5px; }
-.vis-bg { left: 5px; bottom: 5px; }
-.vis-bd { right: 5px; bottom: 5px; }
+/* Les vis restent à l'intérieur des coins arrondis. */
+.vis-hg { left: calc(var(--rayon-carte) * .3); top: calc(var(--rayon-carte) * .3); }
+.vis-hd { right: calc(var(--rayon-carte) * .3); top: calc(var(--rayon-carte) * .3); }
+.vis-bg { left: calc(var(--rayon-carte) * .3); bottom: calc(var(--rayon-carte) * .3); }
+.vis-bd { right: calc(var(--rayon-carte) * .3); bottom: calc(var(--rayon-carte) * .3); }
 
 /* Bandeau */
 .bandeau {
   position: relative;
+  z-index: 2;
   isolation: isolate;
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: 16px;
   padding: 6px 14px;
@@ -665,7 +702,7 @@ body::after {
   color: #FFFFFF;
   box-shadow: var(--ombre-posee), 0 0 0 1px var(--filet);
 }
-.bandeau::before, .envols-colonne::before {
+.bandeau::before {
   content: "";
   position: absolute;
   inset: 0;
@@ -675,27 +712,72 @@ body::after {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
   pointer-events: none;
 }
+/* Médaillon : la mascotte dans un rond crème cerclé d'un anneau fin. */
+.medaillon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: var(--medaillon);
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: 50%;
+  background: linear-gradient(180deg, var(--pastille-1), var(--pastille-2));
+  box-shadow: var(--ombre-pastille), 0 0 0 2px rgba(31, 63, 143, .35);
+}
+.medaillon .mascotte { width: 92%; height: 92%; }
+/* Avec la photo : aucun cadre, la photo apparaît telle quelle, jamais rognée. */
+.medaillon:has(.avec-portrait) {
+  width: auto;
+  height: var(--medaillon);
+  aspect-ratio: auto;
+  overflow: visible;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+.medaillon .mascotte.avec-portrait { width: auto; height: 100%; aspect-ratio: 164 / 127; filter: none; }
 .titre-appareil { min-width: 0; }
 .titre-appareil .surtitre { color: #FFFAF4; font-size: 11px; font-weight: 800; letter-spacing: .1em; }
 .titre-appareil h1 {
+  overflow: hidden;
   color: #FFFFFF;
   font-size: clamp(1.35rem, .95rem + 1.45vw, 2.3rem);
   font-weight: 900;
-  line-height: 1.05;
+  line-height: 1.1;
   letter-spacing: -.015em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   text-shadow: 0 2px 6px rgba(10, 40, 80, .35);
 }
-.legende-mascotte { margin-top: 3px; color: #FFFAF4; font-size: .76rem; font-weight: 700; line-height: 1.3; }
-.legende-mascotte strong { color: #FFFFFF; font-family: var(--mono); font-variant-numeric: tabular-nums; }
-.grille-hp {
-  width: 92px;
-  height: 46px;
-  border-radius: .8em;
-  background: repeating-linear-gradient(45deg, rgba(31, 63, 143, .6) 0 1.5px, rgba(255, 250, 244, .2) 1.5px 4px);
-  box-shadow: inset 0 1px 3px rgba(10, 40, 80, .4), 0 0 0 1px rgba(120, 140, 190, .3);
+/* La mesure phare, à droite du bandeau, à la place des points de vie d'une carte. */
+.mesure-phare {
+  display: grid;
+  justify-items: end;
+  gap: var(--e1);
+  line-height: 1;
 }
-.bandeau-droite { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; }
-.reference { color: #FFFAF4; font-size: 10.5px; font-weight: 800; letter-spacing: .22em; }
+.mesure-phare-libelle { color: #FFFAF4; font-size: 11px; font-weight: 800; letter-spacing: .22em; text-transform: uppercase; }
+.mesure-phare-valeur {
+  color: #FFFFFF;
+  font-size: clamp(1.8rem, 1.1rem + 2.2vw, 3.1rem);
+  font-weight: 800;
+  letter-spacing: -.04em;
+  white-space: nowrap;
+  text-shadow: 0 2px 6px rgba(10, 40, 80, .35);
+}
+/* Pied de carte (contenu complet au tour suivant). */
+.pied-carte {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--e4);
+  padding-inline: var(--e2);
+  color: var(--encre);
+}
+.reference { font-size: 10.5px; font-weight: 800; letter-spacing: .22em; }
+.pied-carte .bouton { min-height: 30px; padding: .15rem .9rem; font-size: .8rem; }
 
 /* Pastilles */
 .bouton, .preset, .sommaire a, .axes select, .jeton {
@@ -762,6 +844,7 @@ body::after {
 [data-humeur="calme"] .yeux-calme,
 [data-humeur="concentre"] .yeux-concentre,
 [data-humeur="vertige"] .yeux-vertige { display: inline; }
+/* Si docs/image.png existe, elle remplace le dessin de Nodo. */
 .m-portrait-bloc { display: none; transform: translateY(calc(var(--pulse) * -3px)); }
 .mascotte.avec-portrait {
   width: auto;
@@ -773,15 +856,16 @@ body::after {
 .mascotte.avec-portrait .m-portrait-bloc { display: inline; }
 
 /* Écran */
+/* La fenêtre : en retrait dans la carte, elle seule défile. */
 .ecran-cadre {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 176px;
+  grid-template-columns: minmax(0, 1fr);
   min-height: 0;
   overflow: hidden;
   border-radius: 20px;
   background: var(--fond);
-  box-shadow: var(--ombre-posee), 0 0 0 1px var(--filet);
+  box-shadow: 0 0 0 1px var(--filet);
 }
 .ecran-cadre::after {
   content: "";
@@ -789,13 +873,15 @@ body::after {
   inset: 0;
   z-index: 3;
   border-radius: inherit;
-  box-shadow: inset 0 2px 6px rgba(20, 50, 110, .16);
+  background: linear-gradient(135deg, rgb(255 255 255 / .04) 0, rgb(255 255 255 / 0) 38%);
+  box-shadow: inset 0 2px 8px rgba(20, 50, 110, .22);
   pointer-events: none;
 }
 .ecran {
   min-width: 0;
   min-height: 0;
   overflow: auto;
+  overscroll-behavior: contain;
   background: var(--fond);
   color: var(--texte);
   scroll-behavior: smooth;
@@ -804,33 +890,18 @@ body::after {
 .ecran:focus-visible { outline: 3px solid var(--actif); outline-offset: -3px; }
 main { padding: clamp(16px, 2.6vw, 32px); }
 main:focus { outline: none; }
+/* Envols : couche sans fond posée sur la fenêtre, côté droit.
+   Elle ne réserve aucune place et ne capte aucun clic. */
 .envols-colonne {
-  position: relative;
-  isolation: isolate;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  min-height: 0;
-  padding: 10px 8px;
-  overflow: hidden;
-  background: linear-gradient(180deg, var(--ciel-clair), var(--ciel) 60%, var(--herbe));
-  box-shadow: inset 1px 0 0 var(--filet);
+  position: absolute;
+  z-index: 4;
+  top: var(--e4);
+  bottom: var(--e4);
+  right: var(--e4);
+  width: 176px;
+  pointer-events: none;
 }
-.envols-titre {
-  align-self: center;
-  padding: .24em .7em;
-  border-radius: 2em;
-  background: linear-gradient(180deg, var(--pastille-1), var(--pastille-2));
-  color: var(--encre);
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: .05em;
-  line-height: 1.2;
-  text-align: center;
-  text-transform: uppercase;
-  box-shadow: var(--ombre-pastille);
-}
-.envols { position: relative; flex: 1; min-height: 0; overflow: hidden; }
+.envols { position: absolute; inset: 0; overflow: hidden; }
 .envol {
   position: absolute;
   max-width: 100%;
@@ -905,6 +976,56 @@ main:focus { outline: none; }
 .badge-retenu { color: var(--vert); font-weight: 800; }
 
 /* Commandes */
+/* Bande métallique : fine bande argentée aux extrémités en pointe, données en petit.
+   Un peu moins large que la zone qu'elle souligne, centrée. */
+.bande-metal {
+  position: relative;
+  z-index: 2;
+  justify-self: center;
+  width: 94%;
+  margin: 0;
+  padding: 4px 30px;
+  background: linear-gradient(180deg,
+    #fdfdfb 0%, #eceae4 40%, #cbc8c0 50%, #e6e4de 60%, #f7f6f2 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .95),
+    inset 0 -1px 0 rgba(120, 115, 105, .35),
+    0 1px 3px rgba(20, 50, 110, .28);
+  color: #2b3040;
+  font-family: var(--police);
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: .07em;
+  line-height: 1.5;
+  text-align: center;
+  text-transform: uppercase;
+  text-wrap: balance;
+  clip-path: polygon(
+    13px 0, calc(100% - 13px) 0, 100% 50%,
+    calc(100% - 13px) 100%, 13px 100%, 0 50%
+  );
+}
+@media (prefers-color-scheme: dark) {
+  .bande-metal {
+    background: linear-gradient(180deg,
+      #434b5c 0%, #2b3240 40%, #1b2129 50%, #2e3542 60%, #3d4452 100%);
+    color: #e8eefb;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, .18),
+      inset 0 -1px 0 rgba(0, 0, 0, .45),
+      0 1px 3px rgba(0, 0, 0, .4);
+  }
+}
+
+/* Rangée du bas de la carte : état et pupitre (habillage complet à venir). */
+.commandes {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  gap: var(--e1);
+  border-radius: 16px;
+  background: var(--coque-bas);
+}
 .pupitre {
   display: grid;
   grid-template-columns: minmax(250px, 1.15fr) 214px minmax(340px, 1.6fr);
@@ -1165,12 +1286,28 @@ h3, h4, .prose h3, .prose h4, .bloc-donnees h3, .groupe-tete h3, .explication h3
   color: var(--texte-2);
 }
 
+/* ---------- Système de mise en page ----------
+   Tout bloc d'une section vit dans --col-texte ; .col-large l'élargit à --col-large.
+   Les deux colonnes sont centrées : dans une même largeur, mêmes bords gauche et droit.
+   Appliqué pour l'instant aux sections marquées .systeme. */
+.section.systeme > * {
+  width: min(100%, var(--col-texte));
+  max-width: none;
+  margin-inline: auto;
+}
+.section.systeme > .col-large { width: min(100%, var(--col-large)); }
+.section.systeme > .sr { width: 1px; }
+.section.systeme > * + * { margin-top: var(--e6); }
+.section.systeme > .section-tete { margin-bottom: 0; }
+.section.systeme > .section-tete + * { margin-top: var(--e5); }
+.section.systeme > .note { margin-top: var(--e3); }
+.section.systeme .section-tete .surtitre { margin-bottom: var(--e3); }
+.section.systeme div.intro { display: grid; gap: var(--e4); }
+.section.systeme .explications,
+.section.systeme .mesures { gap: var(--e4); align-items: stretch; }
+
 @media (max-width: 1100px) {
-  .grille-hp { display: none; }
-  .bandeau { grid-template-columns: auto minmax(0, 1fr) auto; }
-  .ecran-cadre { grid-template-columns: minmax(0, 1fr); grid-template-rows: 40px minmax(0, 1fr); }
-  .envols-colonne { order: -1; flex-direction: row; align-items: stretch; padding: 3px 8px; box-shadow: inset 0 -1px 0 var(--filet); }
-  .envols-titre { display: none; }
+  .envols-colonne { width: 140px; }
   .etat { grid-template-columns: minmax(150px, .8fr) minmax(0, 1.6fr); }
   .etat-arbre { display: none; }
   .pupitre { grid-template-columns: minmax(0, 1fr) 190px; gap: 8px 16px; }
@@ -1181,10 +1318,8 @@ h3, h4, .prose h3, .prose h4, .bloc-donnees h3, .groupe-tete h3, .explication h3
 }
 
 @media (max-height: 820px) and (min-width: 761px) {
-  .boitier { gap: 6px; padding-block: 8px 7px; }
-  .mascotte { width: 62px; height: 62px; }
+  .boitier { gap: 6px; }
   .titre-appareil h1 { font-size: clamp(1.25rem, .9rem + 1.1vw, 1.8rem); }
-  .grille-hp { height: 38px; }
   .pupitre .aide { display: none; }
   .journal { min-height: 36px; padding-block: 3px; }
   .jeton { width: 28px; height: 28px; font-size: .7rem; }
@@ -1192,16 +1327,9 @@ h3, h4, .prose h3, .prose h4, .bloc-donnees h3, .groupe-tete h3, .explication h3
 }
 
 @media (max-width: 760px) {
-  .boitier {
-    gap: 4px;
-    width: 100%;
-    height: 100dvh;
-    margin: 0;
-    padding: 4px;
-    border-radius: 0;
-    box-shadow: none;
-  }
-  .vis, .reference { display: none; }
+  :root { --marge: 6px; --cadre: 6px; --rayon-carte: 14px; }
+  .boitier { gap: 4px; }
+  .vis { display: none; }
   .bandeau {
     grid-template-columns: auto minmax(0, 1fr) auto;
     gap: 8px;
@@ -1211,21 +1339,17 @@ h3, h4, .prose h3, .prose h4, .bloc-donnees h3, .groupe-tete h3, .explication h3
       linear-gradient(90deg, rgb(31 63 143 / .46) 0, rgb(31 63 143 / .4) 100%),
       linear-gradient(90deg, var(--ciel-clair) 0, var(--ciel) 58%, var(--herbe) 100%);
   }
-  .mascotte { width: 48px; height: 48px; }
+  :root { --medaillon: 54px; }
   .titre-appareil .surtitre { display: none; }
-  .titre-appareil h1 { font-size: 1.02rem; line-height: 1.08; }
-  .legende-mascotte { grid-column: 1 / -1; margin-top: 0; font-size: .64rem; }
-  .legende-mascotte span { display: block; }
-  .titre-appareil { display: contents; }
-  .bandeau h1 { grid-column: 2; grid-row: 1; }
-  .bandeau-droite { grid-column: 3; grid-row: 1; }
-  .legende-mascotte { grid-row: 2; }
+  .titre-appareil h1 { font-size: 1.02rem; line-height: 1.12; white-space: normal; }
+  .mesure-phare-valeur { font-size: 1.6rem; }
+  .mesure-phare-libelle { font-size: 9.5px; letter-spacing: .16em; }
   .bouton { min-height: 38px; }
-  .bandeau .bouton { max-width: 118px; padding: .3rem .7rem; border-radius: 1.4em; font-size: .68rem; line-height: 1.1; text-align: center; white-space: normal; }
-  .bandeau .bouton span { display: none; }
+  .pied-carte .bouton { min-height: 36px; }
+  .bande-metal { padding: 3px 20px; font-size: 9.5px; letter-spacing: .04em; }
   .vers-notebook .bouton { width: 100%; }
-  .ecran-cadre { grid-template-rows: 34px minmax(0, 1fr); border-radius: 12px; }
-  .envols-colonne { padding: 2px 6px; }
+  .ecran-cadre { border-radius: 12px; }
+  .envols-colonne { width: 120px; }
   .envol { font-size: .66rem; }
   .etat { grid-template-columns: minmax(0, .85fr) minmax(0, 1.5fr); gap: 7px; padding: 2px 6px; border-radius: 11px; }
   .journal-titre { display: none; }
@@ -1263,15 +1387,6 @@ h3, h4, .prose h3, .prose h4, .bloc-donnees h3, .groupe-tete h3, .explication h3
   .prose table { font-size: .7rem; }
 }
 
-@media (max-height: 640px) {
-  html, body { height: auto; overflow: auto; }
-  .boitier { height: auto; min-height: calc(100dvh - 32px); grid-template-rows: auto auto auto auto; }
-  .ecran-cadre { overflow: visible; grid-template-rows: none; }
-  .ecran { overflow: visible; }
-  .envols-colonne { position: sticky; top: 8px; align-self: start; height: 56vh; }
-  .pupitre { position: sticky; bottom: 0; z-index: 20; border-radius: 12px; background: var(--coque-bas); }
-}
-
 @media (prefers-reduced-motion: reduce) {
   .ecran { scroll-behavior: auto; }
   *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
@@ -1288,7 +1403,8 @@ h3, h4, .prose h3, .prose h4, .bloc-donnees h3, .groupe-tete h3, .explication h3
 <span class="vis vis-bd" aria-hidden="true"></span>
 
 <header class="bandeau">
-  <svg class="mascotte" id="mascotte" viewBox="0 0 120 120" role="img" aria-label="Nodo, la mascotte indicatrice" data-humeur="calme">
+  <span class="medaillon" title="Aura de Nodo : écart d'accuracy entraînement / test (vert = proche, rouge = surapprentissage). Rebond : rappel.">
+  <svg class="mascotte" id="mascotte" viewBox="0 0 120 120" role="img" aria-label="Nodo, la mascotte indicatrice. Aura de Nodo : écart d'accuracy entraînement / test (vert = proche, rouge = surapprentissage). Rebond : rappel." data-humeur="calme">
     <circle class="m-aura" cx="60" cy="64" r="56"/>
     <g class="m-corps">
       <path class="m-trait" d="M60 38V25M60 25 45 15M60 25l15-10"/>
@@ -1324,16 +1440,17 @@ h3, h4, .prose h3, .prose h4, .bloc-donnees h3, .groupe-tete h3, .explication h3
       <image id="portrait" x="-22" y="-3" width="164" height="127" preserveAspectRatio="xMidYMid meet"/>
     </g>
   </svg>
+  </span>
   <div class="titre-appareil">
     <p class="surtitre">Mastère 1 Cybersécurité — OTERIA</p>
     <h1>Prédire si un Pokémon est légendaire</h1>
-    <p class="legende-mascotte"><strong id="mascotte-valeurs">—</strong> <span>Aura de Nodo : écart d'accuracy entraînement / test (vert = proche, rouge = surapprentissage). Rebond : rappel.</span></p>
+    <p id="mascotte-valeurs" hidden>—</p>
   </div>
-  <div class="grille-hp" aria-hidden="true"></div>
-  <div class="bandeau-droite">
-    <span class="reference" aria-hidden="true">NODO-01</span>
-    <a class="bouton" href="notebook/">Voir le notebook complet <span aria-hidden="true">→</span></a>
-  </div>
+  <p class="mesure-phare">
+    <span class="mesure-phare-libelle">Rappel</span>
+    <span class="sr">de test :</span>
+    <strong class="mesure-phare-valeur nombre" id="phare-rappel">—</strong>
+  </p>
 </header>
 
 <div class="ecran-cadre">
@@ -1390,7 +1507,7 @@ h3, h4, .prose h3, .prose h4, .bloc-donnees h3, .groupe-tete h3, .explication h3
     </div>
   </section>
 
-  <section class="section" aria-labelledby="titre-reglages">
+  <section class="section systeme" aria-labelledby="titre-reglages">
     <div class="section-tete">
       <p class="surtitre">Entraîner le modèle</p>
       <h2 id="titre-reglages">Deux réglages pour piloter l'arbre</h2>
@@ -1399,29 +1516,29 @@ h3, h4, .prose h3, .prose h4, .bloc-donnees h3, .groupe-tete h3, .explication h3
       <p>Le curseur fixe le nombre maximal de questions que l'arbre peut poser en cascade. La case à cocher change le barème : elle rend les erreurs sur les légendaires beaucoup plus coûteuses que les erreurs sur les Pokémon normaux.</p>
       <p>Ces deux réglages sont des <strong>hyperparamètres</strong> : je les choisis moi-même, par opposition aux seuils de l'arbre, que le modèle apprend seul à partir des données.</p>
     </div>
+
+    <div class="explications">
+      <article class="carte explication explication-profondeur">
+        <p class="surtitre" id="exp-p-sur">Profondeur</p>
+        <h3 id="exp-p-titre">&nbsp;</h3>
+        <p id="exp-p-texte">&nbsp;</p>
+      </article>
+      <article class="carte explication explication-bareme">
+        <p class="surtitre" id="exp-e-sur">Pondération</p>
+        <h3 id="exp-e-titre">&nbsp;</h3>
+        <p id="exp-e-texte">&nbsp;</p>
+      </article>
+    </div>
   </section>
 
-  <div class="explications">
-    <article class="carte explication explication-profondeur">
-      <p class="surtitre" id="exp-p-sur">Profondeur</p>
-      <h3 id="exp-p-titre">&nbsp;</h3>
-      <p id="exp-p-texte">&nbsp;</p>
-    </article>
-    <article class="carte explication explication-bareme">
-      <p class="surtitre" id="exp-e-sur">Pondération</p>
-      <h3 id="exp-e-titre">&nbsp;</h3>
-      <p id="exp-e-texte">&nbsp;</p>
-    </article>
-  </div>
-
-  <section class="section" aria-labelledby="titre-mesures">
+  <section class="section systeme" aria-labelledby="titre-mesures">
     <div class="section-tete">
       <p class="surtitre">Évaluer le modèle</p>
       <h2 id="titre-mesures">Ce que valent ces réglages</h2>
     </div>
     <p class="intro">Quatre mesures, dans un ordre qui compte. L'<strong>accuracy</strong> est la part de bonnes réponses — on la compare au score d'un programme qui répondrait toujours « non ». La <strong>matrice de confusion</strong> détaille les quatre cas possibles. Le <strong>rappel</strong> est la part des légendaires effectivement trouvés, et la <strong>précision</strong> la part des alertes qui sont justes.</p>
 
-    <div class="mesures">
+    <div class="mesures col-large">
       <article class="carte mesure">
         <p class="surtitre">Accuracy test</p>
         <p class="mesure-valeur nombre" id="m-acc">—</p>
@@ -1448,8 +1565,8 @@ h3, h4, .prose h3, .prose h4, .bloc-donnees h3, .groupe-tete h3, .explication h3
     </div>
 
     <h3 class="sr">Tableau de bord</h3>
-    <p class="intro" style="margin-top:1.25rem">Les six mesures d'un coup, en entraînement et en test. L'écart entre les deux colonnes est l'indicateur à surveiller : plus il se creuse, plus le modèle apprend par cœur au lieu de comprendre.</p>
-    <div class="carte tableau-bord">
+    <p class="intro">Les six mesures d'un coup, en entraînement et en test. L'écart entre les deux colonnes est l'indicateur à surveiller : plus il se creuse, plus le modèle apprend par cœur au lieu de comprendre.</p>
+    <div class="carte tableau-bord col-large">
       <table>
         <thead>
           <tr><th scope="col">Mesure</th><th scope="col">Entraînement</th><th scope="col">Test</th><th scope="col">Écart</th></tr>
@@ -1461,7 +1578,7 @@ h3, h4, .prose h3, .prose h4, .bloc-donnees h3, .groupe-tete h3, .explication h3
         </tbody>
       </table>
     </div>
-    <p class="note">Écart = entraînement − test, en points. Il est surligné en ambre à partir de 10 points.</p>
+    <p class="note col-large">Écart = entraînement − test, en points. Il est surligné en ambre à partir de 10 points.</p>
   </section>
 
   <section class="section" aria-labelledby="titre-confusion">
@@ -2009,11 +2126,11 @@ ces deux réglages et leur interprétation.</p>
 </footer>
 </div>
 <aside class="envols-colonne" aria-hidden="true">
-  <span class="envols-titre">Pokémon en mouvement</span>
   <div class="envols" id="envols"></div>
 </aside>
 </div>
 
+<div class="commandes">
 <div class="etat">
   <div class="journal-bloc">
     <span class="journal-titre">Journal · anneau = rappel · point = pondéré</span>
@@ -2059,6 +2176,12 @@ ces deux réglages et leur interprétation.</p>
       <button type="button" class="preset" data-preset="libre"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4.500h7M12 4.500h2M2 11.500h2M7 11.500h7"/><circle cx="10.500" cy="4.500" r="1.600"/><circle cx="5.500" cy="11.500" r="1.600"/></svg><span>Réglage libre…</span></button>
     </div>
   </div>
+</div>
+</div>
+<p class="bande-metal bande-arbre" id="bande-arbre">&nbsp;</p>
+<div class="pied-carte">
+  <span class="reference">NODO-01</span>
+  <a class="bouton" href="notebook/">Voir le notebook complet <span aria-hidden="true">→</span></a>
 </div>
 <p class="sr" id="annonce" aria-live="polite"></p>
 </div>
@@ -2235,6 +2358,7 @@ function actualiser() {
   const retenu = etat.profondeur === meta.reglage_retenu.profondeur && etat.pondere === meta.reglage_retenu.pondere;
   $("etat-arbre").innerHTML = `Arbre obtenu : <strong class="nombre">${c.profondeur_reelle}</strong> niveau${c.profondeur_reelle > 1 ? "x" : ""}, <strong class="nombre">${c.nb_feuilles}</strong> feuilles<br>`
     + (retenu ? `<span class="badge-retenu">Réglage retenu</span>` : `Réglage retenu : profondeur ${meta.reglage_retenu.profondeur}, pondéré`);
+  $("bande-arbre").textContent = `Arbre · ${c.profondeur_reelle} niveau${c.profondeur_reelle > 1 ? "x" : ""} · ${c.nb_feuilles} feuilles · Profondeur ${etat.profondeur} · Barème ${etat.pondere ? "pondéré" : "neutre"}`;
 
   const t = textesExplication(etat.profondeur, etat.pondere, limite);
   poser("exp-p-sur", `Profondeur ${etat.profondeur}`);
@@ -2246,6 +2370,7 @@ function actualiser() {
 
   poser("m-acc", pct(c.acc_test));
   poser("m-rec", pct(c.rec_test));
+  poser("phare-rappel", pct(c.rec_test));
   poser("m-prec", pct(c.prec_test));
   for (const m of ["acc", "rec", "prec"]) $(`j-${m}`).style.width = `${c[`${m}_test`] * 100}%`;
   poser("m-acc-aide", `${tn + tp} bonnes réponses sur ${tn + fp + fn + tp}`);
@@ -2783,7 +2908,7 @@ function majConsole(c) {
   const texte = `Écart ${formatPoints.format(ecart)} pt${Math.abs(ecart) >= 2 ? "s" : ""} · Rappel ${pct(c.rec_test)} · ${HUMEURS[humeur]}`;
   $("mascotte-valeurs").textContent = texte;
   $("mascotte").dataset.humeur = humeur;
-  $("mascotte").setAttribute("aria-label", `Nodo, la mascotte indicatrice. ${texte}.`);
+  $("mascotte").setAttribute("aria-label", `Nodo, la mascotte indicatrice. ${texte}. Aura de Nodo : écart d'accuracy entraînement / test (vert = proche, rouge = surapprentissage). Rebond : rappel.`);
   if (mouvementReduit.matches) {
     jeu.couleur = [...jeu.couleurCible];
     peindreMascotte(.6);
@@ -2807,7 +2932,7 @@ function majConsole(c) {
   marquerJournal();
 }
 
-/* Si docs/image.png existe, elle remplace le dessin de Nodo dans le logo rond. */
+/* Si docs/image.png existe, elle remplace le dessin de Nodo dans le logo ; sinon Nodo reste. */
 function chargerPortrait() {
   const image = new Image();
   image.onload = () => {
